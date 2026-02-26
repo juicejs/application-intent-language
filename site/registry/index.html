@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AIL Registry</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        background: #f8fafc;
+        color: #1f2937;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      a {
+        color: #0b6bcb;
+      }
+      code {
+        background: #eff3f8;
+        border-radius: 6px;
+        padding: 0.08rem 0.38rem;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th, td {
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        padding: 10px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="card">
+        <h1>Registry</h1>
+        <p>
+          Feature packages are stored in <code>/registry/packages</code> and
+          accepted through pull requests.
+        </p>
+        <p>
+          Machine-readable index:
+          <a href="../../registry-files/index.json">registry/index.json</a>
+        </p>
+        <p><a href="./publish.html">Publishing Guide</a></p>
+
+        <h2>Current Packages</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Package</th>
+              <th>Version</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>game.snake</code></td>
+              <td><code>1.3</code></td>
+              <td><code>registry/packages/game.snake</code></td>
+            </tr>
+            <tr>
+              <td><code>weather</code></td>
+              <td><code>1.4</code></td>
+              <td><code>registry/packages/weather</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>

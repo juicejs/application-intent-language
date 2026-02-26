@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AIL Registry</title>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #4b5563;
+        --line: #d1d5db;
+        --accent: #0b6bcb;
+      }
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 28px 20px 48px;
+      }
+      .hero, .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+      }
+      .hero h1 {
+        margin: 0 0 10px;
+      }
+      .hero p {
+        margin: 0 0 14px;
+        color: var(--muted);
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      a.btn {
+        text-decoration: none;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+      }
+      @media (min-width: 780px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .card h2 {
+        margin-top: 0;
+        font-size: 1.1rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      code {
+        background: #eff3f8;
+        border-radius: 6px;
+        padding: 0.08rem 0.38rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <h1>Application Intent Language (AIL)</h1>
+        <p>
+          Intent-first feature specification for humans and AI coding agents.
+          Start with one intent file, add precision facets only when needed.
+        </p>
+        <div class="links">
+          <a class="btn" href="./spec/">Read Specification</a>
+          <a class="btn" href="./registry/">Browse Registry</a>
+          <a class="btn" href="./README.md">Repository README</a>
+        </div>
+      </section>
+
+      <section class="grid" aria-label="overview">
+        <article class="card">
+          <h2>Canonical Shape</h2>
+          <p class="muted">Each feature uses a package-facet preamble:</p>
+          <p><code>AIL: &lt;feature&gt;#&lt;facet&gt;@&lt;x.y&gt;</code></p>
+          <p class="muted">
+            Minimal feature entrypoint is <code>&lt;feature&gt;.intent.ail</code>.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Community Registry</h2>
+          <p class="muted">
+            Feature packages live under <code>/registry/packages</code> and are
+            published through pull requests with automated validation.
+          </p>
+          <a class="btn" href="./registry/publish.html">Publish A Package</a>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
