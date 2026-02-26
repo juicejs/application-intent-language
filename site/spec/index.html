@@ -3,59 +3,69 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AIL Specification</title>
+    <title>AIM Specification</title>
+    <link rel="stylesheet" href="../assets/site.css">
     <style>
-      body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        background: #f8fafc;
-        color: #1f2937;
+      #spec-content { line-height: 1.65; }
+      #spec-content h1,
+      #spec-content h2,
+      #spec-content h3 { margin-top: 1.25em; }
+      #spec-content pre { margin: 10px 0; }
+      #spec-content pre code {
+        background: transparent;
+        padding: 0;
       }
-      .wrap {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 24px 20px 40px;
-      }
-      .card {
-        background: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 20px;
-      }
-      a {
-        color: #0b6bcb;
-      }
-      code {
-        background: #eff3f8;
-        border-radius: 6px;
-        padding: 0.08rem 0.38rem;
-      }
-      ul {
-        line-height: 1.7;
-      }
+      .err { color: #9f1239; }
     </style>
   </head>
-  <body>
-    <main class="wrap">
-      <div class="card">
-        <h1>AIL Specification</h1>
-        <p>
-          The canonical protocol lives in
-          <code>/specification.md</code>. This site page is a quick route for
-          GitHub Pages visitors.
-        </p>
-        <p>
-          Read it directly in the repository:
-          <a href="../../specification.md">specification.md</a>
-        </p>
-        <h2>Current Highlights</h2>
-        <ul>
-          <li>Intent-first model with <code>&lt;feature&gt;.intent.ail</code>.</li>
-          <li>Optional linked precision facets via <code>INCLUDES</code>.</li>
-          <li>Package-facet preamble: <code>AIL: feature#facet@x.y</code>.</li>
-          <li>Hard errors only for parse/identity/reference failures.</li>
-        </ul>
-      </div>
-    </main>
+  <body data-page="spec" data-base="../">
+    <section class="panel" style="margin-bottom:14px;">
+      <h1 style="margin:0 0 8px;">AIM Specification</h1>
+      <p class="muted" style="margin:0;">
+        This page renders <code>specification.md</code> directly.
+        <a id="spec-link" href="../../specification.md" target="_blank" rel="noopener">Open raw spec file</a>.
+      </p>
+    </section>
+
+    <section class="panel">
+      <div id="spec-content">Loading specification...</div>
+    </section>
+
+    <script src="../assets/chrome.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      async function fetchFirst(urls) {
+        for (const url of urls) {
+          try {
+            const res = await fetch(url);
+            if (res.ok) {
+              return { url, res };
+            }
+          } catch (_) {}
+        }
+        throw new Error("No candidate path resolved.");
+      }
+
+      async function renderSpec() {
+        const el = document.getElementById("spec-content");
+        const link = document.getElementById("spec-link");
+        const candidates = ["../specification.md", "../../specification.md", "/specification.md"];
+        try {
+          const { url, res } = await fetchFirst(candidates);
+          link.href = url;
+          const md = await res.text();
+          if (window.marked && typeof window.marked.parse === "function") {
+            el.innerHTML = window.marked.parse(md);
+          } else {
+            el.innerHTML = `<pre>${md.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</pre>`;
+          }
+        } catch (_) {
+          const hint = window.location.protocol === "file:" ? " Open this site via a local HTTP server." : "";
+          el.innerHTML = `<p class="err">Failed to load specification.md from local or deployed paths.${hint}</p>`;
+        }
+      }
+
+      renderSpec();
+    </script>
   </body>
 </html>

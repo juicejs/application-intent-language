@@ -1,0 +1,139 @@
+AIM: weather#intent@1.4
+
+INTENT WeatherLookup {
+  SUMMARY: "A simple app where a user enters a city and gets the current weather from a public API."
+  REQUIREMENTS:
+    - User can enter a city name and submit a weather lookup.
+    - The system fetches current weather data from a public weather API.
+    - Successful results show city name, temperature, condition summary, humidity, wind speed, and retrieval time.
+    - If a city is unknown or not found, show a clear not-found message.
+    - If the API call fails or times out, show a retry-friendly error message.
+    - Input must be trimmed and treated case-insensitively for lookup behavior.
+    - The feature is read-only and does not require user authentication.
+
+  SCHEMA: |
+    entities:
+      - name: WeatherQuery
+        intent:
+          summary: "Represents one weather lookup request entered by a user."
+          requirements:
+            - "Input city value must be present after trimming."
+            - "Normalized city is stored for deterministic provider calls."
+        attributes:
+          - name: id
+            type: uuid
+            modifiers: [required, generated, immutable]
+          - name: cityInput
+            type: string
+            modifiers: [required, min(1), max(120)]
+          - name: cityNormalized
+            type: string
+            modifiers: [required, min(1), max(120)]
+          - name: createdAt
+            type: datetime
+            modifiers: [required, generated, immutable]
+      - name: WeatherSnapshot
+        intent:
+          summary: "Represents the current weather response for a normalized city."
+          requirements:
+            - "Snapshot reflects one provider fetch result."
+            - "Snapshot is read-only for clients."
+        attributes:
+          - name: id
+            type: uuid
+            modifiers: [required, generated, immutable]
+          - name: city
+            type: string
+            modifiers: [required]
+          - name: countryCode
+            type: string
+            modifiers: [optional, pattern("^[A-Z]{2}$")]
+          - name: temperatureC
+            type: number
+            modifiers: [required]
+          - name: condition
+            type: string
+            modifiers: [required]
+          - name: humidityPct
+            type: integer
+            modifiers: [required, min(0), max(100)]
+          - name: windKph
+            type: number
+            modifiers: [required, min(0)]
+          - name: observedAt
+            type: datetime
+            modifiers: [required]
+          - name: fetchedAt
+            type: datetime
+            modifiers: [required, generated]
+          - name: source
+            type: string
+            modifiers: [required, default("public-weather-api")]
+
+  FLOW: |
+    flows:
+      - name: ValidateCityInput
+        intent:
+          summary: "Validates and normalizes a user-provided city name."
+          requirements:
+            - "Empty or whitespace-only values are rejected."
+        trigger: Contract.GetCurrentWeather
+        steps:
+          - "Trim city input."
+          - "REQUIRES trimmed city length > 0."
+          - "Normalize city for provider lookup."
+      - name: FetchCurrentWeather
+        intent:
+          summary: "Calls a public weather API and maps the response to WeatherSnapshot."
+          requirements:
+            - "Unknown city results in a not-found outcome."
+            - "Provider failure results in retry-friendly error outcome."
+        trigger: Contract.GetCurrentWeather
+        requires:
+          - "Schema.WeatherQuery.cityNormalized is set"
+        steps:
+          - "CALL PublicWeatherProvider.GetCurrentByCity."
+          - "Map provider payload fields to Schema.WeatherSnapshot."
+          - "Set fetchedAt to current time."
+
+  CONTRACT: |
+    contracts:
+      - name: GetCurrentWeather
+        intent:
+          summary: "Returns current weather for a user-entered city."
+          requirements:
+            - "Response includes city, temperature, condition, humidity, wind, and retrieval time."
+        input:
+          - city
+        logic:
+          - "EXECUTE Flow.ValidateCityInput"
+          - "PERSIST Schema.WeatherQuery"
+          - "EXECUTE Flow.FetchCurrentWeather"
+          - "RETURN Schema.WeatherSnapshot"
+
+  PERSONA: |
+    personas:
+      - name: Visitor
+        intent:
+          summary: "Allows any user to look up current weather by city."
+          requirements:
+            - "User can submit city input and view result or error states."
+        views:
+          - name: WeatherLookup
+            intent:
+              summary: "Single-screen weather search with result feedback."
+              requirements:
+                - "Loading, success, not-found, and error states are visible."
+            display:
+              - "form.create: [city]"
+              - "city as primary"
+              - "temperatureC as primary"
+              - "condition as badge"
+              - "humidityPct as badge"
+              - "windKph"
+              - "observedAt as relative-date"
+              - "fetchedAt as relative-date"
+            actions:
+              - "Get Weather -> Contract.GetCurrentWeather"
+              - "Retry -> Contract.GetCurrentWeather"
+}

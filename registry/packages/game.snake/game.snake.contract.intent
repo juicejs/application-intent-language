@@ -1,4 +1,4 @@
-AIL: game.snake#contract@1.3
+AIM: game.snake#contract@1.3
 
 CONTRACT StartGame {
   INTENT:

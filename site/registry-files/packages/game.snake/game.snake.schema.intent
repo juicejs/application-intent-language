@@ -1,0 +1,41 @@
+AIM: game.snake#schema@1.3
+
+SCHEMA GameSession {
+  INTENT:
+    SUMMARY: "Represents one playable snake run on a fixed board."
+    REQUIREMENTS:
+      - Board remains fixed at 20x20 for the whole session.
+      - Session ends immediately on wall or self collision.
+
+  ATTRIBUTES:
+    id: uuid required generated immutable
+    status: enum(ready, running, game_over) required default(ready)
+    boardWidth: integer required default(20) immutable
+    boardHeight: integer required default(20) immutable
+    direction: enum(up, down, left, right) required default(right)
+    snakeCells: json required
+    foodCell: json required
+    score: integer required default(0) min(0)
+    tickIntervalMs: integer required default(200) immutable
+    createdAt: datetime required generated immutable
+    updatedAt: datetime required generated
+
+  CONSTRAINTS:
+    - snakeCells must contain unique in-bounds coordinates.
+    - foodCell must be in bounds and must not overlap snakeCells.
+    - game_over sessions cannot transition back to running.
+}
+
+SCHEMA ScoreEntry {
+  INTENT:
+    SUMMARY: "Stores one leaderboard score for anonymous ranking."
+    REQUIREMENTS:
+      - Initials must be three uppercase letters.
+      - Leaderboard keeps top 10 by score desc then achievedAt asc.
+
+  ATTRIBUTES:
+    id: uuid required generated immutable
+    initials: string required pattern("^[A-Z]{3}$")
+    score: integer required min(0)
+    achievedAt: datetime required generated
+}

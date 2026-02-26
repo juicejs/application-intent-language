@@ -5,15 +5,12 @@
 Community feature packages are published via pull requests to `registry/packages`.
 
 1. Create a package directory: `registry/packages/<feature>/`.
-2. Add `package.json` with required keys:
-   - `name`
-   - `version` (`x.y`)
-   - `summary`
-   - `files` (array of `.ail` file paths)
-3. Add package AIL files at package root.
+2. Add exactly one package entry file: `<feature>.intent`.
+3. Add optional facet files referenced by `INCLUDES` and/or inline intent payloads.
 4. Open a pull request.
+5. Update `registry/index.json` with `name`, `version`, and `entry`.
 
-CI validates package integrity and AIL header conventions.
+CI validates package integrity and AIM header conventions.
 
 ## Spec Changes
 

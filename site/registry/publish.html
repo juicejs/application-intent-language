@@ -3,67 +3,41 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Publish AIL Package</title>
+    <title>Publish AIM Package</title>
+    <link rel="stylesheet" href="../assets/site.css">
     <style>
-      body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        background: #f8fafc;
-        color: #1f2937;
-      }
-      .wrap {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 24px 20px 40px;
-      }
-      .card {
-        background: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 20px;
-      }
-      code, pre {
-        background: #eff3f8;
-        border-radius: 6px;
-      }
-      code {
-        padding: 0.08rem 0.38rem;
-      }
-      pre {
-        padding: 12px;
-        overflow: auto;
-      }
-      a {
-        color: #0b6bcb;
-      }
+      ol { line-height: 1.7; }
+      pre { margin-top: 10px; }
     </style>
   </head>
-  <body>
-    <main class="wrap">
-      <div class="card">
-        <h1>Publish A Feature Package</h1>
-        <ol>
-          <li>Create <code>registry/packages/&lt;feature&gt;/</code>.</li>
-          <li>Add <code>package.json</code> and root-level <code>.ail</code> files.</li>
-          <li>Use valid AIL preambles in all files.</li>
-          <li>Open a pull request.</li>
-        </ol>
+  <body data-page="publish" data-base="../">
+    <section class="panel">
+      <h1>Publish A Feature Package</h1>
+      <ol>
+        <li>Create <code>registry/packages/&lt;feature&gt;/</code>.</li>
+        <li>Add exactly one entry file: <code>&lt;feature&gt;.intent</code>.</li>
+        <li>Add optional facet files referenced by the entry file.</li>
+        <li>Update <code>registry/index.json</code> with <code>name</code>, <code>version</code>, and <code>entry</code>.</li>
+        <li>Use valid AIM preambles in all files.</li>
+        <li>Open a pull request.</li>
+      </ol>
 
-        <p>Minimal manifest:</p>
-        <pre>{
-  "name": "juice.games.snake",
-  "version": "1.3",
-  "summary": "Single-player snake with leaderboard",
-  "files": [
-    "juice.games.snake.intent.ail"
-  ]
+      <p>Minimal registry entry:</p>
+      <pre>{
+  "name": "weather",
+  "version": "1.4",
+  "entry": "registry/packages/weather/weather.intent"
 }</pre>
 
-        <p>
-          CI validates package structure and AIL header identity on every PR.
-          See <a href="../../registry-files/README.md">registry/README.md</a>.
-        </p>
-      </div>
-    </main>
+      <p class="muted">
+        CI validates package structure and AIM header identity on every PR.
+        See <a href="../../registry-files/README.md">registry/README.md</a>.
+      </p>
+      <p class="muted">
+        Consumer workflow: fetch package entry, then materialize sources into local <code>/ail</code> before synthesis.
+      </p>
+    </section>
+
+    <script src="../assets/chrome.js"></script>
   </body>
 </html>

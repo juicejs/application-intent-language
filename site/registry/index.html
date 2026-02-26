@@ -3,81 +3,202 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AIL Registry</title>
+    <title>AIM Registry</title>
+    <link rel="stylesheet" href="../assets/site.css">
     <style>
-      body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        background: #f8fafc;
-        color: #1f2937;
+      .layout {
+        display: grid;
+        gap: 14px;
       }
-      .wrap {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 24px 20px 40px;
-      }
-      .card {
-        background: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 20px;
-      }
-      a {
-        color: #0b6bcb;
-      }
-      code {
-        background: #eff3f8;
-        border-radius: 6px;
-        padding: 0.08rem 0.38rem;
+      @media (min-width: 980px) {
+        .layout { grid-template-columns: 1fr 1fr; }
       }
       table {
-        border-collapse: collapse;
         width: 100%;
+        border-collapse: collapse;
       }
       th, td {
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e2e8f0;
         text-align: left;
         padding: 10px 8px;
+        vertical-align: top;
       }
+      .inspect-btn {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--brand);
+        padding: 6px 9px;
+        cursor: pointer;
+        font: inherit;
+      }
+      .preview {
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 530px;
+        overflow: auto;
+        background: #f8fbff;
+        border: 1px solid #d8e5f7;
+        border-radius: 10px;
+        padding: 12px;
+        line-height: 1.35;
+        font-size: 0.9rem;
+      }
+      .err { color: #9f1239; }
     </style>
   </head>
-  <body>
-    <main class="wrap">
-      <div class="card">
-        <h1>Registry</h1>
-        <p>
-          Feature packages are stored in <code>/registry/packages</code> and
-          accepted through pull requests.
-        </p>
-        <p>
-          Machine-readable index:
-          <a href="../../registry-files/index.json">registry/index.json</a>
-        </p>
-        <p><a href="./publish.html">Publishing Guide</a></p>
+  <body data-page="registry" data-base="../">
+    <section class="panel">
+      <h1 style="margin:0 0 8px;">Package Registry</h1>
+      <p class="muted" style="margin:0;">
+        Click a package to inspect its intent entry and open source files directly.
+        Source catalog: <a id="index-link" href="../../registry/index.json">registry/index.json</a>
+      </p>
+    </section>
 
-        <h2>Current Packages</h2>
-        <table>
+    <section class="layout" style="margin-top:14px;">
+      <div class="panel">
+        <h2>Packages</h2>
+        <table id="pkg-table" aria-label="packages">
           <thead>
             <tr>
               <th>Package</th>
               <th>Version</th>
-              <th>Path</th>
+              <th>Entry</th>
+              <th>Inspect</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td><code>game.snake</code></td>
-              <td><code>1.3</code></td>
-              <td><code>registry/packages/game.snake</code></td>
-            </tr>
-            <tr>
-              <td><code>weather</code></td>
-              <td><code>1.4</code></td>
-              <td><code>registry/packages/weather</code></td>
-            </tr>
+          <tbody id="pkg-body">
+            <tr><td colspan="4" class="muted">Loading registry...</td></tr>
           </tbody>
         </table>
       </div>
-    </main>
+
+      <div class="panel">
+        <h2 id="preview-title">Summary</h2>
+        <p id="preview-meta" class="muted">Select a package to inspect its intent summary.</p>
+        <pre id="preview" class="preview">No package selected.</pre>
+      </div>
+    </section>
+
+    <script src="../assets/chrome.js"></script>
+    <script>
+      const indexCandidates = [
+        "../../registry/index.json",
+        "../registry-files/index.json",
+        "../../registry-files/index.json",
+        "/registry-files/index.json"
+      ];
+      const pkgBody = document.getElementById("pkg-body");
+      const preview = document.getElementById("preview");
+      const previewTitle = document.getElementById("preview-title");
+      const previewMeta = document.getElementById("preview-meta");
+      const indexLink = document.getElementById("index-link");
+
+      async function fetchFirst(urls) {
+        for (const url of urls) {
+          try {
+            const res = await fetch(url);
+            if (res.ok) {
+              return { url, res };
+            }
+          } catch (_) {}
+        }
+        throw new Error("No candidate path resolved.");
+      }
+
+      function toEntryHref(entry, indexUrl) {
+        if (indexUrl.includes("registry-files/index.json")) {
+          const base = indexUrl.replace(/index\.json$/, "");
+          return base + String(entry).replace(/^registry\//, "");
+        }
+        if (indexUrl.includes("registry/index.json")) {
+          const base = indexUrl.replace(/registry\/index\.json$/, "");
+          return base + String(entry);
+        }
+        return String(entry);
+      }
+
+      function htmlEscape(str) {
+        return str
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function extractSummary(intentText) {
+        const blockMatch = intentText.match(/INTENT\s+[A-Za-z0-9_.-]+\s*\{([\s\S]*?)\n\}/m);
+        const scope = blockMatch ? blockMatch[1] : intentText;
+        const quoted = scope.match(/^\s*SUMMARY:\s*"([^"]+)"/m);
+        if (quoted) return quoted[1].trim();
+        const bare = scope.match(/^\s*SUMMARY:\s*(.+)$/m);
+        if (bare) return bare[1].trim();
+        return null;
+      }
+
+      async function loadIntent(pkg, indexUrl) {
+        const entryHref = toEntryHref(pkg.entry, indexUrl);
+        previewTitle.textContent = `Summary: ${pkg.name}`;
+        previewMeta.innerHTML = `Version <code>${htmlEscape(pkg.version)}</code> · <a href="${entryHref}" target="_blank" rel="noopener">Open entry file</a>`;
+        preview.classList.remove("err");
+        preview.textContent = "Loading summary...";
+
+        try {
+          const res = await fetch(entryHref);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const text = await res.text();
+          const summary = extractSummary(text);
+          preview.classList.remove("err");
+          preview.textContent = summary ? summary : "No SUMMARY found in intent file.";
+        } catch (_) {
+          const hint = window.location.protocol === "file:" ? " Open this site via a local HTTP server." : "";
+          preview.textContent = "Failed to load summary." + hint;
+          preview.classList.add("err");
+        }
+      }
+
+      async function loadRegistry() {
+        try {
+          const { url, res } = await fetchFirst(indexCandidates);
+          indexLink.href = url;
+          const data = await res.json();
+          if (!Array.isArray(data.packages) || data.packages.length === 0) {
+            pkgBody.innerHTML = '<tr><td colspan="4" class="muted">No packages found.</td></tr>';
+            return;
+          }
+
+          const rows = data.packages.map((pkg, i) => {
+            const entryHref = toEntryHref(pkg.entry, url);
+            return `
+              <tr>
+                <td><code>${htmlEscape(pkg.name)}</code></td>
+                <td><code>${htmlEscape(pkg.version)}</code></td>
+                <td><a href="${entryHref}" target="_blank" rel="noopener"><code>${htmlEscape(pkg.entry)}</code></a></td>
+                <td><button class="inspect-btn" data-idx="${i}">Inspect</button></td>
+              </tr>
+            `;
+          }).join("");
+
+          pkgBody.innerHTML = rows;
+          pkgBody.querySelectorAll("button[data-idx]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const idx = Number(btn.getAttribute("data-idx"));
+              loadIntent(data.packages[idx], url);
+            });
+          });
+
+          loadIntent(data.packages[0], url);
+        } catch (_) {
+          const hint = window.location.protocol === "file:" ? " Open this site via a local HTTP server." : "";
+          pkgBody.innerHTML = `<tr><td colspan="4" class="err">Failed to load registry index.${hint}</td></tr>`;
+        }
+      }
+
+      loadRegistry();
+    </script>
   </body>
 </html>

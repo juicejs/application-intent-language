@@ -1,10 +1,10 @@
-# Application Intent Language (AIL)
+# Application Intent Model (AIM)
 
-AIL is an intent-first specification language for describing software features in a form that both humans and AI coding agents can use.
+AIM is an intent-first specification language for describing software applications in a form that both humans and AI coding agents can use.
 
 Start simple with one intent file, then add precision only where needed.
 
-## Why AIL
+## Why AIM
 
 - Keep product intent readable.
 - Keep synthesis deterministic.
@@ -14,14 +14,14 @@ Start simple with one intent file, then add precision only where needed.
 
 Each feature has one canonical intent file:
 
-- `<feature>.intent.ail`
+- `<feature>.intent`
 
 Optional precision facets can be added:
 
-- `<feature>.schema.ail`
-- `<feature>.flow.ail`
-- `<feature>.contract.ail`
-- `<feature>.persona.ail`
+- `<feature>.schema.intent`
+- `<feature>.flow.intent`
+- `<feature>.contract.intent`
+- `<feature>.persona.intent`
 
 This enables progressive detail:
 
@@ -56,7 +56,7 @@ To enable it in GitHub:
 ## Quick Example
 
 ```ail
-AIL: game.snake#intent@1.4
+AIM: game.snake#intent@1.4
 
 INTENT SnakeGame {
   SUMMARY: "A single-player snake game with top-10 scores."
@@ -76,12 +76,11 @@ INTENT SnakeGame {
 ## Repository Layout
 
 - [`specification.md`](./specification.md): canonical language specification
-- [`ail/`](./ail): example feature sources
-- [`ail/game.snake.intent.ail`](./ail/game.snake.intent.ail): intent envelope example
 - [`registry/`](./registry): feature package registry
-- [`registry/packages/`](./registry/packages): publishable feature packages
+- [`registry/index.json`](./registry/index.json): package catalog with intent entrypoints
+- [`registry/packages/`](./registry/packages): publishable feature packages (intent entry + optional facets)
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution and publishing workflow
-- [`test/`](./test): test workspace and tooling
+- [`PROMPT.md`](./PROMPT.md): generic local AI synthesis prompt
 
 ## Current Demo
 
@@ -94,6 +93,17 @@ It is also published as a registry package:
 
 - [`registry/packages/game.snake`](./registry/packages/game.snake)
 
+## Local AI Fetch Flow
+
+Use this sequence:
+
+1. Fetch `specification.md`.
+2. Fetch `registry/index.json`.
+3. Select package by `name`.
+4. Fetch the package `entry` intent file and related facet files.
+5. Materialize fetched sources into local `/ail` (and `/ail/mappings` when needed).
+6. Synthesize from local `/ail` so users can edit and rebuild without refetching.
+
 ## Status
 
-Current spec version: **AIL v1.4**.
+Current spec version: **AIM v1.4**.

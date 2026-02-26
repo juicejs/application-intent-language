@@ -3,110 +3,152 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AIL Registry</title>
+    <title>Application Intent Model</title>
+    <link rel="stylesheet" href="./assets/site.css">
     <style>
-      :root {
-        --bg: #f6f7f9;
-        --panel: #ffffff;
-        --text: #1f2937;
-        --muted: #4b5563;
-        --line: #d1d5db;
-        --accent: #0b6bcb;
-      }
-      body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        color: var(--text);
-        background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
-      }
-      .wrap {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 28px 20px 48px;
-      }
-      .hero, .card {
-        background: var(--panel);
+      .hero {
+        background: linear-gradient(140deg, #ffffff 0%, #f4fbf7 65%, #eef8ff 100%);
         border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 22px;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 18px 42px rgba(18, 33, 26, 0.08);
       }
-      .hero h1 {
-        margin: 0 0 10px;
+      .label {
+        display: inline-block;
+        border: 1px solid #9ec5ad;
+        border-radius: 999px;
+        padding: 6px 11px;
+        font-size: 0.78rem;
+        color: #1a5138;
+        background: #f7fffa;
       }
-      .hero p {
-        margin: 0 0 14px;
+      h1 {
+        margin: 12px 0 10px;
+        font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+        line-height: 1.15;
+      }
+      .lead {
         color: var(--muted);
+        line-height: 1.7;
+        max-width: 900px;
+        margin: 0;
       }
-      .links {
+      .quick {
+        margin-top: 16px;
+        border: 1px dashed #9ec5ad;
+        border-radius: 12px;
+        background: #e8f5ee;
+        padding: 12px 14px;
+        color: #1d4732;
+      }
+      .cta {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-      }
-      a.btn {
-        text-decoration: none;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 8px 12px;
-        color: var(--accent);
-        font-weight: 600;
+        margin-top: 18px;
       }
       .grid {
+        margin-top: 14px;
         display: grid;
         gap: 14px;
-        margin-top: 14px;
       }
-      @media (min-width: 780px) {
-        .grid {
-          grid-template-columns: 1fr 1fr;
-        }
+      @media (min-width: 920px) {
+        .grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
       }
       .card h2 {
-        margin-top: 0;
-        font-size: 1.1rem;
+        margin: 0 0 8px;
+        font-size: 1.08rem;
       }
-      .muted {
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.58;
+      }
+      .split {
+        margin-top: 14px;
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 920px) {
+        .split { grid-template-columns: 1fr 1fr; }
+      }
+      .list {
+        margin: 0;
+        padding-left: 18px;
         color: var(--muted);
       }
-      code {
-        background: #eff3f8;
-        border-radius: 6px;
-        padding: 0.08rem 0.38rem;
+      .list li { margin-bottom: 8px; }
+      .footer {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
       }
     </style>
   </head>
-  <body>
-    <main class="wrap">
-      <section class="hero">
-        <h1>Application Intent Language (AIL)</h1>
-        <p>
-          Intent-first feature specification for humans and AI coding agents.
-          Start with one intent file, add precision facets only when needed.
-        </p>
-        <div class="links">
-          <a class="btn" href="./spec/">Read Specification</a>
-          <a class="btn" href="./registry/">Browse Registry</a>
-          <a class="btn" href="./README.md">Repository README</a>
-        </div>
-      </section>
+  <body data-page="home" data-base="./">
+    <section class="hero panel">
+      <span class="label">Intent-First Programming Language</span>
+      <h1>Describe what an app should do. Let AI synthesize the code.</h1>
+      <p class="lead">
+        Application Intent Model (AIM) is a human-readable, machine-parseable format for feature design.
+        One intent entry can be enough for simple features, and optional facets add precision when teams need strict schema, flow, contracts, or persona traceability.
+      </p>
+      <div class="quick">
+        <strong>How teams use it:</strong> select a registry package, materialize files into local <code>/ail</code>, synthesize code, then keep editing the local AIM sources and rebuild anytime.
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="./registry/">Explore Registry</a>
+        <a class="btn secondary" href="./spec/">Read Full Specification</a>
+        <a class="btn secondary" href="./registry/publish.html">Publish Package</a>
+        <a class="btn secondary" href="./README.md">GitHub README</a>
+      </div>
+    </section>
 
-      <section class="grid" aria-label="overview">
-        <article class="card">
-          <h2>Canonical Shape</h2>
-          <p class="muted">Each feature uses a package-facet preamble:</p>
-          <p><code>AIL: &lt;feature&gt;#&lt;facet&gt;@&lt;x.y&gt;</code></p>
-          <p class="muted">
-            Minimal feature entrypoint is <code>&lt;feature&gt;.intent.ail</code>.
-          </p>
-        </article>
-        <article class="card">
-          <h2>Community Registry</h2>
-          <p class="muted">
-            Feature packages live under <code>/registry/packages</code> and are
-            published through pull requests with automated validation.
-          </p>
-          <a class="btn" href="./registry/publish.html">Publish A Package</a>
-        </article>
-      </section>
-    </main>
+    <section class="grid" aria-label="overview">
+      <article class="card">
+        <h2>1. Start Light</h2>
+        <p>Author only <code>&lt;feature&gt;.intent</code> with summary + requirements for fast product iteration.</p>
+      </article>
+      <article class="card">
+        <h2>2. Add Precision</h2>
+        <p>Inline or linked <code>SCHEMA</code>, <code>FLOW</code>, <code>CONTRACT</code>, <code>PERSONA</code> facets when deterministic synthesis matters.</p>
+      </article>
+      <article class="card">
+        <h2>3. Rebuild Locally</h2>
+        <p>Registry fetch is sync only. Local <code>/ail</code> remains source of truth for edits, regeneration, and long-term maintenance.</p>
+      </article>
+    </section>
+
+    <section class="split" aria-label="intro-details">
+      <article class="card">
+        <h2>What makes AIM different</h2>
+        <ul class="list">
+          <li>Natural-language intent is first-class, not comments around code.</li>
+          <li>Deterministic header: <code>AIM: feature#facet@x.y</code>.</li>
+          <li>Structured traceability from user-facing actions to system behavior.</li>
+          <li>Hybrid model supports both lightweight and high-fidelity specs.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Minimal Example</h2>
+        <pre><code>AIM: weather#intent@1.4
+
+INTENT WeatherLookup {
+  SUMMARY: "Get current weather by city."
+  REQUIREMENTS:
+    - User enters a city and sees current conditions.
+}</code></pre>
+        <p class="footer">Then evolve to detailed facets only when needed.</p>
+      </article>
+    </section>
+
+    <script src="./assets/chrome.js"></script>
   </body>
 </html>

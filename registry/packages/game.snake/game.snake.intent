@@ -1,4 +1,4 @@
-AIL: game.snake#intent@1.3
+AIM: game.snake#intent@1.3
 
 INTENT SnakeGame {
   SUMMARY: "A classic single-player snake game where the player grows the snake, avoids collisions, and tries to reach the top-10 leaderboard."
@@ -12,10 +12,10 @@ INTENT SnakeGame {
 }
 
 INCLUDES:
-  - schema: game.snake.schema.ail
-  - flow: game.snake.flow.ail
-  - contract: game.snake.contract.ail
-  - persona: game.snake.persona.ail
+  - schema: game.snake.schema.intent
+  - flow: game.snake.flow.intent
+  - contract: game.snake.contract.intent
+  - persona: game.snake.persona.intent
 
 BEHAVIOR:
   - StartGame creates a new running session with deterministic initial snake state.

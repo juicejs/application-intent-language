@@ -7,12 +7,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PACKAGES = ROOT / "registry" / "packages"
+REGISTRY_INDEX = ROOT / "registry" / "index.json"
 HEADER_RE = re.compile(
-    r"^AIL:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|mapping)@([0-9]+\.[0-9]+)$"
+    r"^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|mapping)@([0-9]+\.[0-9]+)$"
 )
 FEATURE_RE = re.compile(r"^[a-z0-9]+(?:\.[a-z0-9]+)*$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+$")
-LEGACY_TOKENS = (":::AIL_METADATA", "FEATURE:", "FACET:", "VERSION:")
+LEGACY_TOKENS = (":::AIL_METADATA", ":::AIM_METADATA", "FEATURE:", "FACET:", "VERSION:")
+INCLUDE_RE = re.compile(r"^\s*-\s*(schema|flow|contract|persona):\s+([^\s]+)\s*$")
 
 
 def fail(msg: str) -> None:
@@ -20,72 +22,140 @@ def fail(msg: str) -> None:
     sys.exit(1)
 
 
-def check_package_dir(pkg_dir: Path) -> None:
-    manifest_path = pkg_dir / "package.json"
-    if not manifest_path.exists():
-        fail(f"{pkg_dir}: missing package.json")
-
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except Exception as exc:  # noqa: BLE001
-        fail(f"{manifest_path}: invalid JSON ({exc})")
-
-    for key in ("name", "version", "summary", "files"):
-        if key not in manifest:
-            fail(f"{manifest_path}: missing required key '{key}'")
-
-    name = manifest["name"]
-    version = manifest["version"]
-    files = manifest["files"]
-
-    if not isinstance(name, str) or not FEATURE_RE.match(name):
-        fail(f"{manifest_path}: invalid 'name', expected lowercase namespace segments separated by dots")
-    if pkg_dir.name != name:
-        fail(f"{manifest_path}: directory name '{pkg_dir.name}' must match name '{name}'")
-    if not isinstance(version, str) or not VERSION_RE.match(version):
-        fail(f"{manifest_path}: invalid 'version', expected x.y")
-    if not isinstance(files, list) or not files:
-        fail(f"{manifest_path}: 'files' must be a non-empty array")
-
-    for rel in files:
-        if not isinstance(rel, str) or not rel.endswith(".ail"):
-            fail(f"{manifest_path}: each files entry must be a .ail path, got '{rel}'")
-        fpath = pkg_dir / rel
-        if not fpath.exists():
-            fail(f"{manifest_path}: listed file does not exist: {rel}")
-        validate_ail_source(fpath, expected_feature=name, expected_version=version)
-
-
-def validate_ail_source(path: Path, expected_feature: str, expected_version: str) -> None:
+def parse_header(path: Path) -> tuple[str, str, str]:
     raw = path.read_text(encoding="utf-8")
     for token in LEGACY_TOKENS:
         if token in raw:
             fail(f"{path}: legacy metadata token '{token}' is not allowed")
-
-    first_line = raw.splitlines()[0].strip() if raw.splitlines() else ""
+    lines = raw.splitlines()
+    first_line = lines[0].strip() if lines else ""
     m = HEADER_RE.match(first_line)
     if not m:
-        fail(f"{path}: first line must match AIL header grammar")
+        fail(f"{path}: first line must match AIM header grammar")
+    return m.group(1), m.group(2), m.group(3)
 
-    feature, _facet, version = m.groups()
+
+def validate_entry_file(path: Path, expected_feature: str, expected_version: str) -> None:
+    feature, facet, version = parse_header(path)
     if feature != expected_feature:
         fail(f"{path}: header feature '{feature}' does not match package name '{expected_feature}'")
+    if facet != "intent":
+        fail(f"{path}: package entrypoint facet must be 'intent', got '{facet}'")
     if version != expected_version:
         fail(f"{path}: header version '{version}' does not match package version '{expected_version}'")
+
+
+def validate_includes(entry_path: Path, expected_feature: str, expected_version: str) -> None:
+    raw = entry_path.read_text(encoding="utf-8")
+    for line in raw.splitlines():
+        m = INCLUDE_RE.match(line)
+        if not m:
+            continue
+        include_facet, rel = m.groups()
+        target = entry_path.parent / rel
+        if not target.exists():
+            fail(f"{entry_path}: includes missing file '{rel}'")
+        feature, facet, version = parse_header(target)
+        if feature != expected_feature:
+            fail(f"{entry_path}: include '{rel}' feature '{feature}' does not match '{expected_feature}'")
+        if facet != include_facet:
+            fail(f"{entry_path}: include '{rel}' facet '{facet}' does not match key '{include_facet}'")
+        if version != expected_version:
+            fail(f"{entry_path}: include '{rel}' version '{version}' does not match '{expected_version}'")
+
+
+def validate_no_stale_manifests() -> None:
+    stale = []
+    for pkg_dir in sorted([p for p in REGISTRY_PACKAGES.iterdir() if p.is_dir()]):
+        for name in ("package.json", "manifest.ail", "manifest.intent"):
+            if (pkg_dir / name).exists():
+                stale.append(str(pkg_dir / name))
+    if stale:
+        fail(f"stale package manifests are not allowed: {', '.join(stale)}")
+
+
+def validate_index_and_packages() -> int:
+    if not REGISTRY_INDEX.exists():
+        fail(f"missing registry index: {REGISTRY_INDEX}")
+    try:
+        index = json.loads(REGISTRY_INDEX.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        fail(f"{REGISTRY_INDEX}: invalid JSON ({exc})")
+
+    if not isinstance(index, dict):
+        fail(f"{REGISTRY_INDEX}: root must be an object")
+    if "version" not in index:
+        fail(f"{REGISTRY_INDEX}: missing required key 'version'")
+    if "packages" not in index:
+        fail(f"{REGISTRY_INDEX}: missing required key 'packages'")
+    if not isinstance(index["packages"], list) or not index["packages"]:
+        fail(f"{REGISTRY_INDEX}: 'packages' must be a non-empty array")
+
+    package_dirs = sorted([p for p in REGISTRY_PACKAGES.iterdir() if p.is_dir()])
+    package_names = {p.name for p in package_dirs}
+    indexed_names = set()
+
+    for idx, pkg in enumerate(index["packages"], start=1):
+        if not isinstance(pkg, dict):
+            fail(f"{REGISTRY_INDEX}: package at index {idx} must be an object")
+        for key in ("name", "version", "entry"):
+            if key not in pkg:
+                fail(f"{REGISTRY_INDEX}: package at index {idx} missing '{key}'")
+        name = pkg["name"]
+        version = pkg["version"]
+        entry = pkg["entry"]
+        if not isinstance(name, str) or not FEATURE_RE.match(name):
+            fail(f"{REGISTRY_INDEX}: invalid package name '{name}'")
+        if name in indexed_names:
+            fail(f"{REGISTRY_INDEX}: duplicate package name '{name}'")
+        indexed_names.add(name)
+        if not isinstance(version, str) or not VERSION_RE.match(version):
+            fail(f"{REGISTRY_INDEX}: package '{name}' has invalid version '{version}'")
+        if not isinstance(entry, str) or not entry.endswith(".intent"):
+            fail(f"{REGISTRY_INDEX}: package '{name}' entry must be a .intent path")
+        entry_path = ROOT / entry
+        if not entry_path.exists():
+            fail(f"{REGISTRY_INDEX}: package '{name}' entry does not exist: {entry}")
+        expected_prefix = f"registry/packages/{name}/"
+        if not entry.startswith(expected_prefix):
+            fail(f"{REGISTRY_INDEX}: package '{name}' entry must be under '{expected_prefix}'")
+        validate_entry_file(entry_path, expected_feature=name, expected_version=version)
+        validate_includes(entry_path, expected_feature=name, expected_version=version)
+        intent_entry_files = []
+        for source in sorted((REGISTRY_PACKAGES / name).glob("*.intent")):
+            _f, source_facet, _v = parse_header(source)
+            if source_facet == "intent":
+                intent_entry_files.append(source)
+        if len(intent_entry_files) != 1:
+            fail(f"{REGISTRY_PACKAGES / name}: must contain exactly one #intent source file")
+        if intent_entry_files[0].resolve() != entry_path.resolve():
+            fail(
+                f"{REGISTRY_INDEX}: package '{name}' entry must match intent file "
+                f"'{intent_entry_files[0].name}'"
+            )
+
+    if indexed_names != package_names:
+        missing_in_index = sorted(package_names - indexed_names)
+        missing_on_disk = sorted(indexed_names - package_names)
+        details = []
+        if missing_in_index:
+            details.append(f"missing in index: {missing_in_index}")
+        if missing_on_disk:
+            details.append(f"missing on disk: {missing_on_disk}")
+        fail(f"{REGISTRY_INDEX}: package/index mismatch ({'; '.join(details)})")
+    return len(index["packages"])
 
 
 def main() -> None:
     if not REGISTRY_PACKAGES.exists():
         fail(f"missing directory: {REGISTRY_PACKAGES}")
 
-    package_dirs = sorted([p for p in REGISTRY_PACKAGES.iterdir() if p.is_dir()])
-    if not package_dirs:
+    if not any(p.is_dir() for p in REGISTRY_PACKAGES.iterdir()):
         fail("registry/packages must contain at least one package directory")
 
-    for pkg_dir in package_dirs:
-        check_package_dir(pkg_dir)
-
-    print(f"[OK] Validated {len(package_dirs)} package(s)")
+    validate_no_stale_manifests()
+    count = validate_index_and_packages()
+    print(f"[OK] Validated {count} package(s)")
 
 
 if __name__ == "__main__":

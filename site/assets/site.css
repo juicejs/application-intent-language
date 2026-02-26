@@ -1,0 +1,122 @@
+:root {
+  --bg: #f3f7fb;
+  --panel: #ffffff;
+  --text: #172033;
+  --muted: #4e5d78;
+  --line: #cfd8e7;
+  --brand: #005cc8;
+  --brand-soft: #eaf2ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 92% 12%, #dcecff 0, transparent 30%),
+    radial-gradient(circle at 8% 10%, #e7f5ee 0, transparent 28%),
+    var(--bg);
+}
+
+a {
+  color: var(--brand);
+}
+
+.site-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px 20px 50px;
+}
+
+.site-header {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(23, 32, 51, 0.06);
+}
+
+.site-brand {
+  font-weight: 800;
+  text-decoration: none;
+  color: #173154;
+  white-space: nowrap;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+  color: #244368;
+  background: #fff;
+}
+
+.site-nav a.active {
+  background: var(--brand);
+  border-color: #004ea9;
+  color: #fff;
+}
+
+.content {
+  margin-top: 14px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+code {
+  background: var(--brand-soft);
+  border-radius: 6px;
+  padding: 0.06rem 0.35rem;
+}
+
+pre {
+  background: #0f172a;
+  color: #dbe7ff;
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.btn {
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-weight: 700;
+}
+
+.btn.primary {
+  border-color: #004ea9;
+  background: var(--brand);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #fff;
+  color: #21446c;
+}
