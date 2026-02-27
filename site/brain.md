@@ -8,7 +8,7 @@ When you are first initialized with this document, DO NOT generate code immediat
     - The name of the AIM feature package they want to implement (e.g., `demo.todo`).
     - Their target tech stack (frontend framework, backend framework, database).
 3. Wait for their response.
-4. Once they respond, instruct them to download the package (or fetch it yourself if you have URL access) and place it in a local `/ail` directory in their workspace.
+4. Once they respond, instruct them to download the package (or fetch it yourself if you have URL access) and place it in a local `/aim` directory in their workspace.
 5. Once the `.intent` files are local, begin strict synthesis according to the rules below.
 
 ## 2. THE GOLDEN RULE: ZERO INVENTION

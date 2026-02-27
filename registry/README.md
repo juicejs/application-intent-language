@@ -39,7 +39,7 @@ Merged PRs are the publishing mechanism.
 
 ## Consumption Model
 
-Consumers fetch package `entry` from this registry, resolve related sources, and materialize files into local project `/ail` (and `/ail/mappings` when applicable) before synthesis.
+Consumers fetch package `entry` from this registry, resolve related sources, and materialize files into local project `/aim` (and `/aim/mappings` when applicable) before synthesis.
 
 ## Validation Rules
 

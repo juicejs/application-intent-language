@@ -100,8 +100,8 @@ Use this sequence:
 2. Fetch `registry/index.json`.
 3. Select package by `name`.
 4. Fetch the package `entry` intent file and related facet files.
-5. Materialize fetched sources into local `/ail` (and `/ail/mappings` when needed).
-6. Synthesize from local `/ail` so users can edit and rebuild without refetching.
+5. Materialize fetched sources into local `/aim` (and `/aim/mappings` when needed).
+6. Synthesize from local `/aim` so users can edit and rebuild without refetching.
 
 ## Status
 

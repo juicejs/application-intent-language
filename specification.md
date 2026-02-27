@@ -86,15 +86,15 @@ Legacy tokens treated as parse violations:
 
 ## 3. Source Layout
 
-Source discovery uses `/ail` root files only.
+Source discovery uses `/aim` root files only.
 
-- include files directly under `/ail`
-- do not include `/ail/mappings` in feature source discovery
+- include files directly under `/aim`
+- do not include `/aim/mappings` in feature source discovery
 
 Typical layout:
 
 ```text
-/ail/
+/aim/
   game.snake.intent
   game.snake.schema.intent
   game.snake.flow.intent
@@ -124,14 +124,14 @@ Package validity rules:
 
 ### 3.2 Local Materialization Rule
 
-Even when sources are fetched remotely, synthesis must run against local files in project `/ail`.
+Even when sources are fetched remotely, synthesis must run against local files in project `/aim`.
 
 Required behavior:
 
 1. fetch selected package entry and related facet sources
-2. materialize them into local `/ail` before synthesis
-3. materialize mapping sources into local `/ail/mappings` when applicable
-4. synthesize from local `/ail` so users can edit and rebuild without refetching
+2. materialize them into local `/aim` before synthesis
+3. materialize mapping sources into local `/aim/mappings` when applicable
+4. synthesize from local `/aim` so users can edit and rebuild without refetching
 
 ---
 
@@ -548,7 +548,7 @@ If dependency declarations are spread across files:
 
 ### 8.4 Mapping Files
 
-Mappings are declared in `/ail/mappings` files with `facet=mapping`.
+Mappings are declared in `/aim/mappings` files with `facet=mapping`.
 `TARGET` identifies the destination capability provider, whether it is another AIM feature namespace or an external implementation surface.
 
 ```ail
@@ -654,8 +654,8 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 1. Load package catalog from `registry/index.json` (when using remote package selection).
 2. Select package by `name` and fetch `entry` intent file.
 3. Resolve related sources from `INCLUDES` and package-local references.
-4. Materialize fetched sources into local `/ail` and mappings into `/ail/mappings`.
-5. Discover source `.intent` files in local `/ail` root.
+4. Materialize fetched sources into local `/aim` and mappings into `/aim/mappings`.
+5. Discover source `.intent` files in local `/aim` root.
 6. Parse and validate header declarations.
 7. Group files by feature.
 8. Parse intent envelopes.
@@ -663,7 +663,7 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 10. Parse optional embedded facet DSL blocks in intent bodies.
 11. Merge external/inline/embedded facets by resolution order and authority rules.
 12. Parse dependencies/requirements.
-13. Load mappings from local `/ail/mappings` when present.
+13. Load mappings from local `/aim/mappings` when present.
 14. Resolve required aliases.
 15. Determine synthesis tier.
 16. Synthesize artifacts with tier-appropriate precision.
@@ -697,7 +697,7 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 22. Existing separate facet projects remain valid when linked via intent `INCLUDES`.
 23. Unresolved `REQUIRES` still hard-fails.
 24. Registry package entry resolves to existing `#intent` source matching index `name` and `version`.
-25. Remote package fetch materialized into local `/ail` enables subsequent local-only rebuild.
+25. Remote package fetch materialized into local `/aim` enables subsequent local-only rebuild.
 
 ---
 
