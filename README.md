@@ -53,6 +53,22 @@ To enable it in GitHub:
 2. Set `Source` to `GitHub Actions`.
 3. Push to `main` or run the workflow manually.
 
+## DigitalOcean App Platform
+
+For custom domains and explicit `.intent` serving behavior, deploy with Docker + Nginx:
+
+- `Dockerfile`
+- `nginx.conf`
+- `.do/app.yaml`
+
+Nginx serves `*.intent` as `text/plain` and enables CORS for fetch clients.
+
+After deploy, verify:
+
+1. `/registry-files/index.json`
+2. `/registry-files/packages/weather/weather.intent`
+3. `/specification.md`
+
 ## Quick Example
 
 ```ail

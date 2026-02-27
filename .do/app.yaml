@@ -1,0 +1,15 @@
+name: application-intent-model
+region: nyc
+
+services:
+  - name: web
+    github:
+      repo: juicejs/application-intent-language
+      branch: master
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+      - path: /
