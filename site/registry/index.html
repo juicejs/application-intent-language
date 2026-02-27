@@ -23,12 +23,13 @@
             <tr>
               <th>Package</th>
               <th>Version</th>
-              <th>Entry</th>
-              <th>Inspect</th>
+              <th>Short Summary</th>
+              <th>Copy URL</th>
+              <th>Start</th>
             </tr>
           </thead>
           <tbody id="pkg-body">
-            <tr><td colspan="4" class="muted">Loading registry...</td></tr>
+            <tr><td colspan="5" class="muted">Loading registry...</td></tr>
           </tbody>
         </table>
       </div>
@@ -126,35 +127,103 @@
           indexLink.href = url;
           const data = await res.json();
           if (!Array.isArray(data.packages) || data.packages.length === 0) {
-            pkgBody.innerHTML = '<tr><td colspan="4" class="muted">No packages found.</td></tr>';
+            pkgBody.innerHTML = '<tr><td colspan="5" class="muted">No packages found.</td></tr>';
             return;
           }
 
           const rows = data.packages.map((pkg, i) => {
-            const entryHref = toEntryHref(pkg.entry, url);
             return `
               <tr>
                 <td><code>${htmlEscape(pkg.name)}</code></td>
                 <td><code>${htmlEscape(pkg.version)}</code></td>
-                <td><a href="${entryHref}" target="_blank" rel="noopener"><code>${htmlEscape(pkg.entry)}</code></a></td>
-                <td><button class="inspect-btn" data-idx="${i}">Inspect</button></td>
+                <td class="summary-cell" data-summary-idx="${i}"><span class="muted">Loading...</span></td>
+                <td><button class="inspect-btn" data-copy-url-idx="${i}">Copy URL</button></td>
+                <td><button class="inspect-btn copy-prompt-btn" data-pkg-idx="${i}">Copy Prompt</button></td>
               </tr>
             `;
           }).join("");
 
           pkgBody.innerHTML = rows;
-          pkgBody.querySelectorAll("button[data-idx]").forEach((btn) => {
-            btn.addEventListener("click", () => {
-              const idx = Number(btn.getAttribute("data-idx"));
-              loadIntent(data.packages[idx], url);
+
+          // Fetch summaries for all packages
+          data.packages.forEach(async (pkg, i) => {
+            const entryHref = toEntryHref(pkg.entry, url);
+            const summaryCell = pkgBody.querySelector(`[data-summary-idx="${i}"]`);
+
+            try {
+              const res = await fetch(entryHref);
+              if (!res.ok) throw new Error();
+              const text = await res.text();
+              const summary = extractSummary(text);
+              summaryCell.innerHTML = summary ? htmlEscape(summary) : '<span class="muted">No summary found</span>';
+            } catch (_) {
+              summaryCell.innerHTML = '<span class="muted">Failed to load</span>';
+            }
+          });
+
+          pkgBody.querySelectorAll("button[data-copy-url-idx]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const idx = Number(btn.getAttribute("data-copy-url-idx"));
+              copyPackageUrl(data.packages[idx], url, e.currentTarget);
+            });
+          });
+
+          pkgBody.querySelectorAll("button[data-pkg-idx]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const idx = Number(btn.getAttribute("data-pkg-idx"));
+              copyPackagePrompt(data.packages[idx], url, e.currentTarget);
             });
           });
 
           loadIntent(data.packages[0], url);
         } catch (_) {
           const hint = window.location.protocol === "file:" ? " Open this site via a local HTTP server." : "";
-          pkgBody.innerHTML = `<tr><td colspan="4" class="err">Failed to load registry index.${hint}</td></tr>`;
+          pkgBody.innerHTML = `<tr><td colspan="5" class="err">Failed to load registry index.${hint}</td></tr>`;
         }
+      }
+
+      function copyPackageUrl(pkg, indexUrl, btn) {
+        const entryHref = toEntryHref(pkg.entry, indexUrl);
+        const fullUrl = entryHref.startsWith('http')
+          ? entryHref
+          : window.location.origin + '/' + entryHref.replace(/^\.\.\//, '');
+
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.background = '#0891b2';
+
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          alert('Failed to copy URL. Please try again.');
+        });
+      }
+
+      function copyPackagePrompt(pkg, indexUrl, btn) {
+        const entryHref = toEntryHref(pkg.entry, indexUrl);
+        const fullUrl = entryHref.startsWith('http')
+          ? entryHref
+          : window.location.origin + '/' + entryHref.replace(/^\.\.\//, '');
+
+        const prompt = `Apply the logic at https://intentmodel.dev/brain.md to this project. Ready? This is the ${pkg.name} package (${fullUrl}) and ask for the stack.`;
+
+        navigator.clipboard.writeText(prompt).then(() => {
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.background = '#059669';
+
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          alert('Failed to copy prompt. Please try again.');
+        });
       }
 
       loadRegistry();

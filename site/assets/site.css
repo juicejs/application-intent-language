@@ -383,6 +383,24 @@ td {
   color: var(--text-secondary);
 }
 
+td.summary-cell {
+  max-width: 350px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
+/* Hide the right-side preview panel on registry page */
+body[data-page="registry"] .layout > .panel:last-child {
+  display: none;
+}
+
+body[data-page="registry"] .layout {
+  grid-template-columns: 1fr;
+}
+
 tbody tr {
   transition: background var(--transition);
 }
@@ -521,12 +539,24 @@ tbody tr:hover {
   transition: all var(--transition);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .inspect-btn:hover {
   background: var(--cyan);
   color: white;
   border-color: var(--cyan);
+}
+
+.copy-prompt-btn {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.copy-prompt-btn:hover {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
 }
 
 /* Error states */

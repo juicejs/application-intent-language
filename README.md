@@ -84,8 +84,9 @@ INTENT SnakeGame {
 
 This repo includes a `game.snake` demo feature showing:
 
-- intent envelope with `INCLUDES`
-- linked external facets (`schema`, `flow`, `contract`, `persona`)
+- a mixed-source intent envelope
+- inline `SCHEMA`, `FLOW`, and `PERSONA`
+- linked external `CONTRACT` and `VIEW` facets
 
 It is also published as a registry package:
 

@@ -1,0 +1,25 @@
+AIM: game.snake#view@1.4
+
+VIEW GameBoard {
+  SUMMARY: "Shared game screen for starting and steering a run."
+  DISPLAY {
+    - "The current snake, food cell, and score"
+    - "A visible game status indicator"
+  }
+  ACTIONS {
+    - "Pressing 'Start' -> CALL StartGame"
+    - "Arrow keys or swipe gesture -> CALL ChangeDirection"
+  }
+}
+
+VIEW Leaderboard {
+  SUMMARY: "Shared leaderboard surface for finished runs."
+  DISPLAY {
+    - "Top scores ordered by highest score first"
+    - "If the run is finished, show initials entry"
+  }
+  ACTIONS {
+    - "Submitting initials -> CALL SubmitScore"
+    - "Refreshing the board -> CALL GetTopScores"
+  }
+}

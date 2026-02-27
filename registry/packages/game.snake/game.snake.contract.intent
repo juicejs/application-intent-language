@@ -1,94 +1,67 @@
-AIM: game.snake#contract@1.3
+AIM: game.snake#contract@1.4
 
 CONTRACT StartGame {
-  SUMMARY: "Creates and starts a new snake session."
-  REQUIREMENTS {
-    - "New session starts in running state."
-  }
-
+  SUMMARY: "Starts a fresh snake session."
   INPUT {
     - none
   }
-  LOGIC {
-    - "EXECUTE Flow.InitializeSession"
-    - "PERSIST Schema.GameSession"
+  EXPECTS {
+    - "A new game session can be allocated"
+  }
+  ENSURES {
+    - PERSISTS "GameSession with status='running' and score=0"
+  }
+  RETURNS {
+    - "The new GameSession"
   }
 }
 
 CONTRACT ChangeDirection {
-  SUMMARY: "Requests a directional turn for the active session."
-  REQUIREMENTS {
-    - "Turns are processed only for running sessions."
-  }
-
+  SUMMARY: "Applies a requested turn when it is valid for the running game."
   INPUT {
-    - sessionId
-    - direction
+    sessionId: uuid required
+    direction: enum(up, down, left, right) required
   }
-  LOGIC {
-    - "REQUIRES Schema.GameSession.status == running"
-    - "EXECUTE Flow.ApplyDirectionChange"
+  EXPECTS {
+    - "GameSession must exist"
+    - "GameSession.status must be 'running'"
+    - "direction must not immediately reverse the snake"
   }
-}
-
-CONTRACT GetGameState {
-  SUMMARY: "Returns current state of a snake session."
-  REQUIREMENTS {
-    - "Includes board, snake, food, score, and status."
+  ENSURES {
+    - UPDATES "GameSession.direction when the turn is valid"
   }
-
-  INPUT {
-    - sessionId
-  }
-  LOGIC {
-    - "READ Schema.GameSession by sessionId"
-    - "RETURN Schema.GameSession"
+  RETURNS {
+    - "The updated GameSession"
   }
 }
 
 CONTRACT SubmitScore {
-  SUMMARY: "Submits finished session score to the leaderboard."
-  REQUIREMENTS {
-    - "Allowed only after game_over."
-  }
-
+  SUMMARY: "Stores a finished run on the leaderboard."
   INPUT {
-    - sessionId
-    - initials
+    sessionId: uuid required
+    initials: string required
   }
-  LOGIC {
-    - "REQUIRES Schema.GameSession.status == game_over"
-    - "EXECUTE Flow.FinalizeLeaderboard"
+  EXPECTS {
+    - "GameSession.status must be 'game_over'"
+    - "initials must match three uppercase letters"
+  }
+  ENSURES {
+    - PERSISTS "ScoreEntry for the finished run"
+  }
+  RETURNS {
+    - "The saved ScoreEntry"
   }
 }
 
 CONTRACT GetTopScores {
-  SUMMARY: "Returns leaderboard entries in rank order."
-  REQUIREMENTS {
-    - "Limit is optional and capped at 10."
-  }
-
+  SUMMARY: "Returns the current leaderboard."
   INPUT {
-    - limit optional
+    - none
   }
-  LOGIC {
-    - "REQUIRES limit <= 10 when provided"
-    - "READ Schema.ScoreEntry ordered by score desc then achievedAt asc"
-    - "RETURN top rows"
+  ENSURES {
+    - CALLS "Leaderboard read model"
   }
-}
-
-CONTRACT RestartGame {
-  SUMMARY: "Starts a fresh session without mutating historical runs."
-  REQUIREMENTS {
-    - "Restart creates a new session id."
-  }
-
-  INPUT {
-    - previousSessionId optional
-  }
-  LOGIC {
-    - "EXECUTE Flow.InitializeSession"
-    - "PERSIST Schema.GameSession"
+  RETURNS {
+    - "Ordered ScoreEntry list"
   }
 }

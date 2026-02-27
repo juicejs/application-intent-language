@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "game.snake",
-      "version": "1.3",
+      "version": "1.4",
       "entry": "registry/packages/game.snake/game.snake.intent"
     },
     {
@@ -12,9 +12,9 @@
       "entry": "registry/packages/weather/weather.intent"
     },
     {
-      "name": "todo",
+      "name": "nemicko.demo.todo",
       "version": "1.4",
-      "entry": "registry/packages/todo/todo.intent"
+      "entry": "registry/packages/nemicko.demo.todo/todo.intent"
     }
   ]
 }

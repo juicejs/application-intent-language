@@ -301,22 +301,26 @@ Implementations may add opt-in fallback behavior, but it is not part of core def
 
 ## 6. Worked Example (`game.snake`)
 
-This repository includes a complete hybrid-envelope example:
+This repository includes a compact mixed-source hybrid-envelope example:
 
 - intent envelope: `ail/game.snake.intent`
+- inline facets inside the intent envelope:
+  - `SCHEMA GameSession`
+  - `SCHEMA ScoreEntry`
+  - `FLOW AdvanceTick`
+  - `PERSONA Player`
 - linked external facets via `INCLUDES`:
-  - `ail/game.snake.schema.intent`
-  - `ail/game.snake.flow.intent`
   - `ail/game.snake.contract.intent`
-  - `ail/game.snake.persona.intent`
+  - `ail/game.snake.view.intent`
 
 For this example, an AI synthesizer should:
 
 1. parse `game.snake#intent@1.4`
 2. parse `INCLUDES` links
-3. load each linked external facet
-4. treat linked facets as synthesis authority
-5. use `INTENT` and optional `TESTS` as feature-level narrative and acceptance guidance, with mechanism detail defined in `FLOW`/`CONTRACT` facets
+3. parse embedded `SCHEMA`, `FLOW`, and `PERSONA` blocks in the intent body
+4. load linked external `CONTRACT` and `VIEW` facets
+5. treat linked external facets as authority for those facet types
+6. use `INTENT` and optional `TESTS` as feature-level narrative and acceptance guidance
 
 ---
 
