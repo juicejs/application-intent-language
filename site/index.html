@@ -5,91 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Application Intent Model</title>
     <link rel="stylesheet" href="./assets/site.css">
-    <style>
-      .hero {
-        background: linear-gradient(140deg, #ffffff 0%, #f4fbf7 65%, #eef8ff 100%);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 28px;
-        box-shadow: 0 18px 42px rgba(18, 33, 26, 0.08);
-      }
-      .label {
-        display: inline-block;
-        border: 1px solid #9ec5ad;
-        border-radius: 999px;
-        padding: 6px 11px;
-        font-size: 0.78rem;
-        color: #1a5138;
-        background: #f7fffa;
-      }
-      h1 {
-        margin: 12px 0 10px;
-        font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-        line-height: 1.15;
-      }
-      .lead {
-        color: var(--muted);
-        line-height: 1.7;
-        max-width: 900px;
-        margin: 0;
-      }
-      .quick {
-        margin-top: 16px;
-        border: 1px dashed #9ec5ad;
-        border-radius: 12px;
-        background: #e8f5ee;
-        padding: 12px 14px;
-        color: #1d4732;
-      }
-      .cta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 18px;
-      }
-      .grid {
-        margin-top: 14px;
-        display: grid;
-        gap: 14px;
-      }
-      @media (min-width: 920px) {
-        .grid { grid-template-columns: repeat(3, 1fr); }
-      }
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 16px;
-      }
-      .card h2 {
-        margin: 0 0 8px;
-        font-size: 1.08rem;
-      }
-      .card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.58;
-      }
-      .split {
-        margin-top: 14px;
-        display: grid;
-        gap: 14px;
-      }
-      @media (min-width: 920px) {
-        .split { grid-template-columns: 1fr 1fr; }
-      }
-      .list {
-        margin: 0;
-        padding-left: 18px;
-        color: var(--muted);
-      }
-      .list li { margin-bottom: 8px; }
-      .footer {
-        margin-top: 12px;
-        color: var(--muted);
-        font-size: 0.95rem;
-      }
-    </style>
   </head>
   <body data-page="home" data-base="./">
     <section class="hero panel">
@@ -104,13 +19,13 @@
       </div>
       <div class="cta">
         <a class="btn primary" href="./registry/">Explore Registry</a>
-        <a class="btn secondary" href="./spec/">Read Full Specification</a>
+        <a class="btn secondary" href="./spec/">Read Specification</a>
         <a class="btn secondary" href="./registry/publish.html">Publish Package</a>
-        <a class="btn secondary" href="./README.md">GitHub README</a>
+        <a class="btn secondary" href="https://github.com/anthropics/application-intent-language" target="_blank" rel="noopener">GitHub Repo</a>
       </div>
     </section>
 
-    <section class="grid" aria-label="overview">
+    <section class="grid cols-3" aria-label="overview">
       <article class="card">
         <h2>1. Start Light</h2>
         <p>Author only <code>&lt;feature&gt;.intent</code> with summary + requirements for fast product iteration.</p>
@@ -145,7 +60,7 @@ INTENT WeatherLookup {
   REQUIREMENTS:
     - User enters a city and sees current conditions.
 }</code></pre>
-        <p class="footer">Then evolve to detailed facets only when needed.</p>
+        <p class="muted" style="margin-top: var(--space-md);">Then evolve to detailed facets only when needed.</p>
       </article>
     </section>
 

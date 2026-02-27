@@ -5,58 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AIM Registry</title>
     <link rel="stylesheet" href="../assets/site.css">
-    <style>
-      .layout {
-        display: grid;
-        gap: 14px;
-      }
-      @media (min-width: 980px) {
-        .layout { grid-template-columns: 1fr 1fr; }
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      th, td {
-        border-bottom: 1px solid #e2e8f0;
-        text-align: left;
-        padding: 10px 8px;
-        vertical-align: top;
-      }
-      .inspect-btn {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #fff;
-        color: var(--brand);
-        padding: 6px 9px;
-        cursor: pointer;
-        font: inherit;
-      }
-      .preview {
-        white-space: pre-wrap;
-        word-break: break-word;
-        max-height: 530px;
-        overflow: auto;
-        background: #f8fbff;
-        border: 1px solid #d8e5f7;
-        border-radius: 10px;
-        padding: 12px;
-        line-height: 1.35;
-        font-size: 0.9rem;
-      }
-      .err { color: #9f1239; }
-    </style>
   </head>
   <body data-page="registry" data-base="../">
     <section class="panel">
-      <h1 style="margin:0 0 8px;">Package Registry</h1>
+      <h1 style="margin:0 0 var(--space-md);">Package Registry</h1>
       <p class="muted" style="margin:0;">
         Click a package to inspect its intent entry and open source files directly.
         Source catalog: <a id="index-link" href="../../registry/index.json">registry/index.json</a>
       </p>
     </section>
 
-    <section class="layout" style="margin-top:14px;">
+    <section class="layout" style="margin-top: var(--space-lg);">
       <div class="panel">
         <h2>Packages</h2>
         <table id="pkg-table" aria-label="packages">

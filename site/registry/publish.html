@@ -5,31 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Publish AIM Package</title>
     <link rel="stylesheet" href="../assets/site.css">
-    <style>
-      ol { line-height: 1.7; }
-      pre { margin-top: 10px; }
-    </style>
   </head>
   <body data-page="publish" data-base="../">
     <section class="panel">
       <h1>Publish A Feature Package</h1>
-      <ol>
-        <li>Create <code>registry/packages/&lt;feature&gt;/</code>.</li>
-        <li>Add exactly one entry file: <code>&lt;feature&gt;.intent</code>.</li>
-        <li>Add optional facet files referenced by the entry file.</li>
-        <li>Update <code>registry/index.json</code> with <code>name</code>, <code>version</code>, and <code>entry</code>.</li>
-        <li>Use valid AIM preambles in all files.</li>
-        <li>Open a pull request.</li>
+      <ol style="line-height: 1.7; margin-left: var(--space-xl); color: var(--text-secondary);">
+        <li style="margin-bottom: var(--space-md);">Create <code>registry/packages/&lt;feature&gt;/</code>.</li>
+        <li style="margin-bottom: var(--space-md);">Add exactly one entry file: <code>&lt;feature&gt;.intent</code>.</li>
+        <li style="margin-bottom: var(--space-md);">Add optional facet files referenced by the entry file.</li>
+        <li style="margin-bottom: var(--space-md);">Update <code>registry/index.json</code> with <code>name</code>, <code>version</code>, and <code>entry</code>.</li>
+        <li style="margin-bottom: var(--space-md);">Use valid AIM preambles in all files.</li>
+        <li style="margin-bottom: var(--space-md);">Open a pull request.</li>
       </ol>
 
-      <p>Minimal registry entry:</p>
+      <p style="margin-top: var(--space-xl); margin-bottom: var(--space-sm);">Minimal registry entry:</p>
       <pre>{
   "name": "weather",
   "version": "1.4",
   "entry": "registry/packages/weather/weather.intent"
 }</pre>
 
-      <p class="muted">
+      <p class="muted" style="margin-top: var(--space-xl);">
         CI validates package structure and AIM header identity on every PR.
         See <a href="../../registry-files/README.md">registry/README.md</a>.
       </p>

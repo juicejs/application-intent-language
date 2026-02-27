@@ -1,53 +1,13 @@
-name: Deploy GitHub Pages
+name: GitHub Pages (Disabled)
 
+# Deployment is handled by DigitalOcean App Platform.
+# This workflow remains as a disabled placeholder to avoid accidental Pages deploys.
 on:
-  push:
-    branches: ["main", "master"]
-    paths:
-      - "site/**"
-      - "README.md"
-      - "specification.md"
-      - "registry/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
-  build:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build static site
-        run: |
-          mkdir -p _site
-          cp -R site/* _site/
-          cp README.md _site/README.md
-          cp specification.md _site/specification.md
-          cp -R registry _site/registry-files
-          touch _site/.nojekyll
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Pages deployment disabled
+        run: echo "GitHub Pages deployment is disabled. Use DigitalOcean App Platform."

@@ -156,8 +156,9 @@ AIM: demo.todo#intent@1.4
 
 INTENT TodoFeature {
   SUMMARY: "A simple personal todo tracker."
-  REQUIREMENTS:
-    - User can add, complete, and delete todos.
+  REQUIREMENTS {
+    - "User can add, complete, and delete todos."
+  }
 }
 ```
 
@@ -168,29 +169,33 @@ AIM: game.snake#intent@1.4
 
 INTENT SnakeGame {
   SUMMARY: "A single-player snake game with persistent top scores."
-  REQUIREMENTS:
-    - Movement is tick-based.
-    - Wall and self collision end the run.
+  REQUIREMENTS {
+    - "Movement is tick-based."
+    - "Wall and self collision end the run."
+  }
 }
 
-BEHAVIOR:
-  - Describe loop and transitions.
+BEHAVIOR {
+  - "Describe loop and transitions."
+}
 
-TESTS:
-  - Describe acceptance scenarios.
+TESTS {
+  - "Describe acceptance scenarios."
+}
 ```
 
-### 4.3 Embedded Facet Payloads In Intent
+### 4.3 Embedded Facet Blocks In Intent
 
-Inside `INTENT <Name> { ... }`, authors may include optional raw YAML payload properties:
+Inside `INTENT <Name> { ... }`, authors may include optional embedded facet blocks using the same Relaxed AIM DSL syntax as standalone facet files.
 
-- `SCHEMA: |`
-- `FLOW: |`
-- `CONTRACT: |`
-- `PERSONA: |`
+- `SCHEMA`
+- `FLOW`
+- `CONTRACT`
+- `PERSONA`
 
-These payloads are additive and intended for lightweight one-file authoring.
+These embedded blocks are additive and intended for lightweight one-file authoring.
 Allowed embedded facet keys are uppercase `SCHEMA`, `FLOW`, `CONTRACT`, and `PERSONA` only.
+All embedded facet content follows the same brace-based rules: `{}` for hierarchy (with whitespace/newlines between braces ignored by the parser), no commas, quoted natural-language strings, and hyphen-led list items.
 
 Minimal embedded example:
 
@@ -199,17 +204,16 @@ AIM: weather#intent@1.4
 
 INTENT WeatherLookup {
   SUMMARY: "Get current weather by city."
-  REQUIREMENTS:
-    - User can enter a city and fetch current weather.
+  REQUIREMENTS {
+    - "User can enter a city and fetch current weather."
+  }
 
-  SCHEMA: |
-    entities:
-      - name: WeatherSnapshot
-        fields:
-          - name: city
-            type: string
-          - name: temperatureC
-            type: number
+  SCHEMA WeatherSnapshot {
+    ATTRIBUTES {
+      city: string required
+      temperatureC: number required
+    }
+  }
 }
 ```
 
@@ -220,25 +224,28 @@ AIM: weather#intent@1.4
 
 INTENT WeatherLookup {
   SUMMARY: "Get current weather by city."
-  REQUIREMENTS:
-    - User can fetch weather and retry on failure.
+  REQUIREMENTS {
+    - "User can fetch weather and retry on failure."
+  }
 
-  SCHEMA: |
-    entities:
-      - name: WeatherSnapshot
-        fields:
-          - name: humidityPct
-            required: false
+  SCHEMA WeatherSnapshot {
+    ATTRIBUTES {
+      humidityPct: integer optional min(0) max(100)
+    }
+  }
 }
 
 SCHEMA WeatherSnapshot {
-  INTENT:
+  INTENT {
     SUMMARY: "Authoritative schema detail."
-    REQUIREMENTS:
-      - Humidity is required.
+    REQUIREMENTS {
+      - "Humidity is required."
+    }
+  }
 
-  ATTRIBUTES:
+  ATTRIBUTES {
     humidityPct: integer required min(0) max(100)
+  }
 }
 ```
 
@@ -276,7 +283,7 @@ Effective facet source is resolved in this order:
 
 1. external facet declared in `INCLUDES` (if present)
 2. top-level inline facet block in intent file (if present)
-3. embedded facet YAML payload in `INTENT` body (if present)
+3. embedded facet DSL block in `INTENT` body (if present)
 4. facet absent (allowed)
 
 ### 5.3 Authority Rule
@@ -328,7 +335,7 @@ For each facet (`schema|flow|contract|persona`), effective source is:
 | --- | --- | --- |
 | 1 | External linked facet (`INCLUDES`) | Highest authority |
 | 2 | Top-level inline facet block (`SCHEMA Name {}` etc.) | Used when no external source |
-| 3 | Embedded YAML payload inside `INTENT` | Lightweight fallback |
+| 3 | Embedded DSL block inside `INTENT` | Lightweight fallback |
 | 4 | Absent facet | Allowed |
 
 If multiple sources exist for the same facet, the higher-priority source wins and lower-priority content is ignored for synthesis with informational diagnostics.
@@ -336,6 +343,7 @@ If multiple sources exist for the same facet, the higher-priority source wins an
 ### 7.1 Schema Facet
 
 Purpose: data at rest.
+Syntax: `SCHEMA <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
 Common blocks:
 
@@ -355,6 +363,7 @@ Common modifiers:
 ### 7.2 Flow Facet
 
 Purpose: internal mechanisms.
+Syntax: `FLOW <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
 Common blocks:
 
@@ -369,6 +378,7 @@ Flows are internal by design.
 ### 7.3 Contract Facet
 
 Purpose: externally invokable operations.
+Syntax: `CONTRACT <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
 Common blocks:
 
@@ -386,6 +396,7 @@ Common logic keywords:
 ### 7.4 Persona Facet
 
 Purpose: user-visible experience.
+Syntax: `PERSONA <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
 Common blocks:
 
@@ -515,9 +526,9 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 - missing included file
 - included file feature/facet/version-family mismatch
 
-5. Embedded facet payload violations
+5. Embedded facet block violations
 - invalid embedded facet key in `INTENT` body
-- malformed embedded YAML payload when that payload is selected as effective facet source
+- malformed embedded block syntax (including mismatched curly braces) when that block is selected as effective facet source
 
 6. Unresolved required references
 - unresolved `REQUIRES` alias in `CALL Alias.Operation`
@@ -529,7 +540,7 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 - missing optional `BEHAVIOR` / `TESTS`
 - no detail facets provided
 - inline facet overridden by external facet
-- embedded facet payload overridden by top-level or external facet
+- embedded facet block overridden by top-level or external facet
 - unresolved `IMPORT` alias
 - intent/detail narrative conflict (detail authority applied)
 
@@ -546,7 +557,7 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 7. Group files by feature.
 8. Parse intent envelopes.
 9. Resolve `INCLUDES` links.
-10. Parse optional embedded facet YAML payloads in intent bodies.
+10. Parse optional embedded facet DSL blocks in intent bodies.
 11. Merge external/inline/embedded facets by resolution order and authority rules.
 12. Parse dependencies/requirements.
 13. Load mappings from local `/ail/mappings` when present.
@@ -570,14 +581,14 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 9. Included file missing -> hard error.
 10. Included file facet mismatch -> hard error.
 11. Inline + external same facet -> informational override note, external used.
-12. Parse success: intent file with embedded `SCHEMA: |` only.
-13. Parse success: intent file with embedded `SCHEMA/FLOW/CONTRACT/PERSONA` only.
-14. Parse success: intent file with embedded payload + top-level blocks + `INCLUDES`.
-15. Precedence: linked external overrides top-level and embedded payload.
-16. Precedence: top-level overrides embedded payload when no external exists.
+12. Parse success: intent file with embedded `SCHEMA <Name> { ... }` block only.
+13. Parse success: intent file with embedded `SCHEMA/FLOW/CONTRACT/PERSONA` blocks only.
+14. Parse success: intent file with embedded DSL block + top-level blocks + `INCLUDES`.
+15. Precedence: linked external overrides top-level and embedded DSL blocks.
+16. Precedence: top-level overrides embedded DSL blocks when no external exists.
 17. Hard failure: invalid embedded facet key (`DATA:`).
-18. Hard failure: malformed embedded YAML when selected as effective source.
-19. Informational note: embedded payload overridden by top-level or external facet.
+18. Hard failure: malformed embedded block syntax or mismatched curly braces when selected as effective source.
+19. Informational note: embedded DSL block overridden by top-level or external facet.
 20. Existing separate facet projects remain valid when linked via intent `INCLUDES`.
 21. Unresolved `REQUIRES` still hard-fails.
 22. Registry package entry resolves to existing `#intent` source matching index `name` and `version`.
