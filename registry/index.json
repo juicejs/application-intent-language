@@ -10,6 +10,11 @@
       "name": "weather",
       "version": "1.4",
       "entry": "registry/packages/weather/weather.intent"
+    },
+    {
+      "name": "todo",
+      "version": "1.4",
+      "entry": "registry/packages/todo/todo.intent"
     }
   ]
 }

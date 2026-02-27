@@ -36,3 +36,28 @@
     active.classList.add("active");
   }
 })();
+
+// Bootstrap prompt copy functionality
+function copyBootstrap() {
+  const promptText = document.getElementById('bootstrap-prompt').textContent;
+  const button = event.currentTarget;
+
+  navigator.clipboard.writeText(promptText).then(() => {
+    const originalHTML = button.innerHTML;
+    button.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>Copied!</span>
+    `;
+    button.classList.add('copied');
+
+    setTimeout(() => {
+      button.innerHTML = originalHTML;
+      button.classList.remove('copied');
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert('Failed to copy. Please select and copy manually.');
+  });
+}

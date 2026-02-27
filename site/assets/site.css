@@ -556,6 +556,97 @@ tbody tr:hover {
   font-weight: bold;
 }
 
+/* Bootstrap prompt section */
+.bootstrap-section {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border: 2px solid var(--green);
+  border-left: 4px solid var(--green);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.bootstrap-header {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.bootstrap-header h2 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.bootstrap-header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.bootstrap-prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background: #2d3748;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-md);
+  border-radius: 4px;
+}
+
+.prompt-text {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  user-select: all;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.copy-btn.copied {
+  background: #059669;
+}
+
+.copy-btn svg {
+  flex-shrink: 0;
+}
+
+.bootstrap-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+  font-style: italic;
+}
+
 /* Flow visualization */
 .flow-section {
   background: var(--surface);
@@ -848,5 +939,25 @@ tbody tr:hover {
 
   .vision-content > p {
     font-size: 1rem;
+  }
+
+  /* Bootstrap section mobile */
+  .bootstrap-section {
+    padding: var(--space-lg);
+  }
+
+  .bootstrap-prompt {
+    flex-direction: column;
+    padding: var(--space-md);
+  }
+
+  .prompt-text {
+    font-size: 0.85rem;
+    word-break: break-word;
+  }
+
+  .copy-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

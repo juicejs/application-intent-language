@@ -1,4 +1,4 @@
-AIM: demo.todo#intent@1.4
+AIM: nemicko.demo.todo#intent@1.4
 
 INTENT TaskManager {
   SUMMARY: "A complete personal task management system supporting creation, completion, and deletion of daily todos."
