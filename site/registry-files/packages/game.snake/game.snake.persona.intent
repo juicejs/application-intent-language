@@ -1,42 +1,52 @@
 AIM: game.snake#persona@1.3
 
 PERSONA Player {
-  INTENT:
+  INTENT {
     SUMMARY: "Lets a player run a game, submit score, and view rankings."
-    REQUIREMENTS:
-      - All player actions must map to defined contracts.
+    REQUIREMENTS {
+      - "All player actions must map to defined contracts."
+    }
+  }
 
   VIEW Game {
-    INTENT:
+    INTENT {
       SUMMARY: "Shows active gameplay state and directional controls."
-      REQUIREMENTS:
-        - Board state and score are visible while playing.
+      REQUIREMENTS {
+        - "Board state and score are visible while playing."
+      }
+    }
 
-    DISPLAY:
-      - boardGrid as primary
-      - snakeCells
-      - foodCell
-      - score as badge
-      - status as badge
+    DISPLAY {
+      - "boardGrid as primary"
+      - "snakeCells"
+      - "foodCell"
+      - "score as badge"
+      - "status as badge"
+    }
 
-    ACTIONS:
-      - "Start" -> Contract.StartGame
-      - "Turn" -> Contract.ChangeDirection
-      - "Restart" -> Contract.RestartGame
+    ACTIONS {
+      - "Start -> Contract.StartGame"
+      - "Turn -> Contract.ChangeDirection"
+      - "Restart -> Contract.RestartGame"
+    }
   }
 
   VIEW Leaderboard {
-    INTENT:
+    INTENT {
       SUMMARY: "Shows persistent high scores and score submission action."
-      REQUIREMENTS:
-        - Player can submit score after game over and refresh top scores.
+      REQUIREMENTS {
+        - "Player can submit score after game over and refresh top scores."
+      }
+    }
 
-    DISPLAY:
-      - scoreTable
-      - form.create: [initials]
+    DISPLAY {
+      - "scoreTable"
+      - "form.create: [initials]"
+    }
 
-    ACTIONS:
-      - "Submit Score" -> Contract.SubmitScore
-      - "Refresh" -> Contract.GetTopScores
+    ACTIONS {
+      - "Submit Score -> Contract.SubmitScore"
+      - "Refresh -> Contract.GetTopScores"
+    }
   }
 }

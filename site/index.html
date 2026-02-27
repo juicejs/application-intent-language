@@ -8,14 +8,17 @@
   </head>
   <body data-page="home" data-base="./">
     <section class="hero panel">
-      <span class="label">Intent-First Programming Language</span>
-      <h1>Describe what an app should do. Let AI synthesize the code.</h1>
+      <span class="label">Intent-First Programming Language | Intent, Not Code</span>
+      <h1 style="font-size:2.3rem">Describe what an app should do. Let AI synthesize the code.</h1>
       <p class="lead">
-        Application Intent Model (AIM) is a human-readable, machine-parseable format for feature design.
-        One intent entry can be enough for simple features, and optional facets add precision when teams need strict schema, flow, contracts, or persona traceability.
+        Imagine repositories filled with human-readable intent files instead of source code. AIM makes this real! Specify what you want, let AI synthesize the implementation.
+        Edit intents, not code. Version control meaning, not syntax.
       </p>
+        <p class="lead">
+            Just clean, readable .intent files describing what your application does. AI agents synthesize implementations on demand. Teams review intent changes, not code diffs. The repository becomes documentation, specification, and source of truth—all in one.
+        </p>
       <div class="quick">
-        <strong>How teams use it:</strong> select a registry package, materialize files into local <code>/ail</code>, synthesize code, then keep editing the local AIM sources and rebuild anytime.
+        <strong>Quick start:</strong> Pull a package from the registry, sync to your local <code>/ail</code> folder, and synthesize. Edit the intent files and rebuild whenever you need.
       </div>
       <div class="cta">
         <a class="btn primary" href="./registry/">Explore Registry</a>
@@ -25,14 +28,76 @@
       </div>
     </section>
 
-    <section class="grid cols-3" aria-label="overview">
+    <section class="flow-section" aria-label="workflow">
+      <h2>How AIM Works</h2>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="12" width="48" height="40" stroke="currentColor" stroke-width="2" fill="none"/>
+              <line x1="8" y1="20" x2="56" y2="20" stroke="currentColor" stroke-width="2"/>
+              <line x1="16" y1="28" x2="40" y2="28" stroke="currentColor" stroke-width="2"/>
+              <line x1="16" y1="36" x2="48" y2="36" stroke="currentColor" stroke-width="2"/>
+              <line x1="16" y1="44" x2="36" y2="44" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>Specify</h3>
+          <p>Write human-readable intent files</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="2"/>
+              <path d="M32 12 L32 32 L42 22" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="32" cy="32" r="3" fill="currentColor"/>
+              <circle cx="20" cy="20" r="2" fill="currentColor"/>
+              <circle cx="44" cy="20" r="2" fill="currentColor"/>
+              <circle cx="20" cy="44" r="2" fill="currentColor"/>
+              <circle cx="44" cy="44" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Synthesize</h3>
+          <p>AI generates implementation</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="16" y="8" width="32" height="48" stroke="currentColor" stroke-width="2" fill="none"/>
+              <line x1="24" y1="16" x2="40" y2="16" stroke="currentColor" stroke-width="2"/>
+              <line x1="24" y1="24" x2="40" y2="24" stroke="currentColor" stroke-width="2"/>
+              <line x1="24" y1="32" x2="36" y2="32" stroke="currentColor" stroke-width="2"/>
+              <path d="M20 44 L28 48 L44 40" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <h3>Build</h3>
+          <p>Compile and package</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 8 L56 24 L56 44 L32 56 L8 44 L8 24 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+              <line x1="32" y1="8" x2="32" y2="56" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="24" x2="56" y2="24" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="44" x2="56" y2="44" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>Run</h3>
+          <p>Deploy and execute</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid cols-3" style="margin-bottom:2.5rem;" aria-label="overview">
       <article class="card">
         <h2>1. Start Light</h2>
         <p>Author only <code>&lt;feature&gt;.intent</code> with summary + requirements for fast product iteration.</p>
       </article>
       <article class="card">
         <h2>2. Add Precision</h2>
-        <p>Inline or linked <code>SCHEMA</code>, <code>FLOW</code>, <code>CONTRACT</code>, <code>PERSONA</code> facets when deterministic synthesis matters.</p>
+        <p>Inline or linked <code>SCHEMA</code>, <code>FLOW</code>, <code>CONTRACT</code>, <code>VIEW</code>, <code>PERSONA</code> facets when deterministic synthesis matters.</p>
       </article>
       <article class="card">
         <h2>3. Rebuild Locally</h2>
@@ -43,11 +108,14 @@
     <section class="split" aria-label="intro-details">
       <article class="card">
         <h2>What makes AIM different</h2>
+          <p>Picture GitHub repositories without source code. No JavaScript files. No Python modules. No dependency hell.</p>
         <ul class="list">
-          <li>Natural-language intent is first-class, not comments around code.</li>
-          <li>Deterministic header: <code>AIM: feature#facet@x.y</code>.</li>
-          <li>Structured traceability from user-facing actions to system behavior.</li>
-          <li>Hybrid model supports both lightweight and high-fidelity specs.</li>
+            <ul class="vision-benefits">
+                <li><strong>Readable by everyone</strong><br/>Product managers, designers, developers read the same files</li>
+                <li><strong>Language agnostic</strong><br/>Synthesize to any stack, any platform, any framework</li>
+                <li><strong>Forever maintainable</strong><br/>Intent outlives implementation details</li>
+                <li><strong>AI-native collaboration</strong><br/>Agents understand what you want, not just what you wrote</li>
+            </ul>
         </ul>
       </article>
 
@@ -56,13 +124,31 @@
         <pre><code>AIM: weather#intent@1.4
 
 INTENT WeatherLookup {
-  SUMMARY: "Get current weather by city."
-  REQUIREMENTS:
-    - User enters a city and sees current conditions.
+  SUMMARY: "Real-time weather lookup with automatic error handling for missing cities."
+
+  REQUIREMENTS {
+    - "User enters a city name to view current temperature and conditions."
+    - "UI displays a friendly error state if the city is not found."
+  }
+
+  CONTRACT FetchWeather {
+    INPUT {
+      city: string required
+    }
+    EXPECTS {
+      - "City string must not be empty"
+    }
+    ENSURES {
+      - "CALLS External.WeatherAPI"
+      - "RETURNS WeatherSnapshot object on success"
+    }
+  }
+}
 }</code></pre>
         <p class="muted" style="margin-top: var(--space-md);">Then evolve to detailed facets only when needed.</p>
       </article>
     </section>
+
 
     <script src="./assets/chrome.js"></script>
   </body>

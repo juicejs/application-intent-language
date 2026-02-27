@@ -14,7 +14,9 @@ HEADER_RE = re.compile(
 FEATURE_RE = re.compile(r"^[a-z0-9]+(?:\.[a-z0-9]+)*$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+$")
 LEGACY_TOKENS = (":::AIL_METADATA", ":::AIM_METADATA", "FEATURE:", "FACET:", "VERSION:")
-INCLUDE_RE = re.compile(r"^\s*-\s*(schema|flow|contract|persona):\s+([^\s]+)\s*$")
+INCLUDES_START_RE = re.compile(r"^\s*INCLUDES\s*\{\s*$")
+INCLUDES_ENTRY_RE = re.compile(r'^\s*(schema|flow|contract|persona)\s*:\s*"([^"]+)"\s*$')
+INCLUDES_END_RE = re.compile(r"^\s*}\s*$")
 
 
 def fail(msg: str) -> None:
@@ -47,11 +49,55 @@ def validate_entry_file(path: Path, expected_feature: str, expected_version: str
 
 def validate_includes(entry_path: Path, expected_feature: str, expected_version: str) -> None:
     raw = entry_path.read_text(encoding="utf-8")
-    for line in raw.splitlines():
-        m = INCLUDE_RE.match(line)
-        if not m:
-            continue
-        include_facet, rel = m.groups()
+    lines = raw.splitlines()
+    include_entries: list[tuple[str, str]] = []
+    include_block_found = False
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+
+        if INCLUDES_START_RE.match(line):
+            if include_block_found:
+                fail(f"{entry_path}: multiple INCLUDES blocks are not allowed")
+            include_block_found = True
+            seen_keys = set()
+            i += 1
+
+            while i < len(lines) and not INCLUDES_END_RE.match(lines[i]):
+                current = lines[i]
+                if not current.strip():
+                    i += 1
+                    continue
+                m = INCLUDES_ENTRY_RE.match(current)
+                if not m:
+                    fail(
+                        f"{entry_path}: malformed INCLUDES entry '{current.strip()}' "
+                        "(expected: key: \"path.intent\")"
+                    )
+                include_facet, rel = m.groups()
+                if include_facet in seen_keys:
+                    fail(f"{entry_path}: duplicate INCLUDES key '{include_facet}'")
+                seen_keys.add(include_facet)
+                include_entries.append((include_facet, rel))
+                i += 1
+
+            if i >= len(lines):
+                fail(f"{entry_path}: unterminated INCLUDES block")
+
+        elif re.match(r"^\s*INCLUDES\b", line):
+            fail(f"{entry_path}: malformed INCLUDES declaration (expected: INCLUDES {{)")
+
+        i += 1
+
+    for include_facet, rel in include_entries:
+        rel_path = Path(rel)
+        if rel_path.is_absolute():
+            fail(f"{entry_path}: INCLUDES path must be relative, got '{rel}'")
+        if not rel.endswith(".intent"):
+            fail(f"{entry_path}: INCLUDES path must end with .intent, got '{rel}'")
+        if ".." in rel_path.parts:
+            fail(f"{entry_path}: INCLUDES path must not contain parent traversal, got '{rel}'")
         target = entry_path.parent / rel
         if not target.exists():
             fail(f"{entry_path}: includes missing file '{rel}'")

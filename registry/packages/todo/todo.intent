@@ -1,0 +1,127 @@
+AIM: demo.todo#intent@1.4
+
+INTENT TaskManager {
+  SUMMARY: "A complete personal task management system supporting creation, completion, and deletion of daily todos."
+
+  REQUIREMENTS {
+    - "Users can create new tasks with a title and optional description."
+    - "Users can mark active tasks as completed."
+    - "Users can delete tasks to remove them permanently."
+    - "Tasks must securely belong only to the authenticated user."
+  }
+
+  TESTS {
+    - "A user cannot view or complete a task owned by a different user."
+    - "Completing an already completed task returns safely without error."
+  }
+
+  # --- 1. STATE (The Data) ---
+  SCHEMA TodoItem {
+    INTENT {
+      SUMMARY: "The core data entity representing a single user task."
+    }
+    ATTRIBUTES {
+      id: string generated unique
+      ownerId: string required
+      title: string required max(100)
+      description: string optional
+      status: string default('PENDING') enum('PENDING', 'COMPLETED')
+      createdAt: timestamp generated
+    }
+  }
+
+  # --- 2. RULES (The Guardrails) ---
+  CONTRACT CreateTodo {
+    INTENT {
+      SUMMARY: "Creates a new pending task for the active user."
+    }
+    INPUT {
+      title: string required
+      description: string optional
+    }
+    AUTHZ {
+      - "User must be actively authenticated"
+    }
+    EXPECTS {
+      - "Title must not be empty or purely whitespace"
+    }
+    ENSURES {
+      - PERSISTS "New TodoItem with status='PENDING' and ownerId=currentUser.id"
+      - EMITS "TodoCreatedEvent"
+    }
+    RETURNS {
+      - "The created TodoItem"
+    }
+  }
+
+  CONTRACT CompleteTodo {
+    INTENT {
+      SUMMARY: "Safely marks an active task as complete."
+    }
+    INPUT {
+      todoId: string required
+    }
+    AUTHZ {
+      - "User must be authenticated"
+      - "User must be the ownerId of the TodoItem"
+    }
+    EXPECTS {
+      - "TodoItem record must exist"
+      - "TodoItem.status must currently be 'PENDING'"
+    }
+    ENSURES {
+      - UPDATES "TodoItem.status to 'COMPLETED'"
+    }
+    RETURNS {
+      - "The updated TodoItem"
+    }
+  }
+
+  # --- 3. MECHANICS (The Internal Plumbing) ---
+  FLOW ExecuteCreateTodo {
+    INTENT {
+      SUMMARY: "Orchestrates database insertion and event publishing for new tasks."
+    }
+    TRIGGER {
+      - "Invoked by CreateTodo CONTRACT"
+    }
+    STEPS {
+      - "CALL Auth.GetCurrentUser to extract userId"
+      - "Construct new TodoItem object with input data and extracted userId"
+      - "CALL Storage.Insert(TodoItem)"
+      - "CALL EventBus.Publish('TodoCreated', TodoItem)"
+    }
+    ON_ERROR {
+      - "CALL Logger.Warn('Failed to create task')"
+      - "RETHROW error to surface to UI"
+    }
+  }
+
+  # --- 4. ACTORS & UI (The Triggers) ---
+  PERSONA StandardUser {
+    INTENT {
+      SUMMARY: "A regular individual managing their personal task list."
+    }
+    ROLE {
+      - "user:standard"
+    }
+    ACCESS {
+      - VIEW TodoDashboard
+    }
+  }
+
+  VIEW TodoDashboard {
+    INTENT {
+      SUMMARY: "The main interface for viewing and interacting with the task list."
+    }
+    DISPLAY {
+      - "A list of TodoItem records where ownerId=currentUser.id"
+      - "Visual distinction between PENDING and COMPLETED tasks"
+      - "Empty state message if no tasks exist"
+    }
+    ACTIONS {
+      - "Submitting the 'New Task' form -> CALL CreateTodo"
+      - "Tapping the checkbox on a PENDING task -> CALL CompleteTodo"
+    }
+  }
+}

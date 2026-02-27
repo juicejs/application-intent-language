@@ -146,7 +146,6 @@ Hard minimum for validity:
 
 Recommended (non-blocking):
 
-- `BEHAVIOR`
 - `TESTS`
 
 ### 4.1 Minimal Template
@@ -173,14 +172,10 @@ INTENT SnakeGame {
     - "Movement is tick-based."
     - "Wall and self collision end the run."
   }
-}
 
-BEHAVIOR {
-  - "Describe loop and transitions."
-}
-
-TESTS {
-  - "Describe acceptance scenarios."
+  TESTS {
+    - "Describe acceptance scenarios."
+  }
 }
 ```
 
@@ -192,9 +187,10 @@ Inside `INTENT <Name> { ... }`, authors may include optional embedded facet bloc
 - `FLOW`
 - `CONTRACT`
 - `PERSONA`
+- `VIEW`
 
 These embedded blocks are additive and intended for lightweight one-file authoring.
-Allowed embedded facet keys are uppercase `SCHEMA`, `FLOW`, `CONTRACT`, and `PERSONA` only.
+Allowed embedded facet keys are uppercase `SCHEMA`, `FLOW`, `CONTRACT`, `PERSONA`, and `VIEW` only.
 All embedded facet content follows the same brace-based rules: `{}` for hierarchy (with whitespace/newlines between braces ignored by the parser), no commas, quoted natural-language strings, and hyphen-led list items.
 
 Minimal embedded example:
@@ -258,11 +254,12 @@ Intent files may link external detail files using `INCLUDES`.
 Canonical form:
 
 ```ail
-INCLUDES:
-  - schema: game.snake.schema.intent
-  - flow: game.snake.flow.intent
-  - contract: game.snake.contract.intent
-  - persona: game.snake.persona.intent
+INCLUDES {
+  schema: "game.snake.schema.intent"
+  flow: "game.snake.flow.intent"
+  contract: "game.snake.contract.intent"
+  persona: "game.snake.persona.intent"
+}
 ```
 
 ### 5.1 `INCLUDES` Validation
@@ -318,7 +315,7 @@ For this example, an AI synthesizer should:
 2. parse `INCLUDES` links
 3. load each linked external facet
 4. treat linked facets as synthesis authority
-5. use `INTENT`, `BEHAVIOR`, and `TESTS` as feature-level narrative and acceptance guidance
+5. use `INTENT` and optional `TESTS` as feature-level narrative and acceptance guidance, with mechanism detail defined in `FLOW`/`CONTRACT` facets
 
 ---
 
@@ -362,7 +359,7 @@ Common modifiers:
 
 ### 7.2 Flow Facet
 
-Purpose: internal mechanisms.
+Purpose: Internal mechanics and step-by-step orchestration. Flows define *how* an operation is executed under the hood, detailing the sequence of internal logic, branching, external API calls, and error handling.
 Syntax: `FLOW <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
 Common blocks:
@@ -370,42 +367,137 @@ Common blocks:
 - `FLOW`
 - `INTENT`
 - `TRIGGER`
-- `REQUIRES`
 - `STEPS`
+- `ON_ERROR`
 
-Flows are internal by design.
+Common logic keywords for STEPS:
+
+- `EVALUATE`, `CALL`, `ITERATE`, `BRANCH`, `AWAIT`, `TRANSITION`
+
+```ail
+FLOW ExecuteTodoCompletion {
+  INTENT {
+    SUMMARY: "Orchestrates the database update and event publishing for completing a todo."
+  }
+
+  TRIGGER {
+    - "Invoked by CompleteTodo CONTRACT"
+  }
+
+  STEPS {
+    - "CALL Storage.BeginTransaction"
+    - "CALL Storage.FetchById(todoId)"
+    - "EVALUATE if already completed, early return"
+    - "UPDATE record in memory with status='COMPLETED'"
+    - "CALL Storage.Save(record)"
+    - "CALL EventBus.Publish('TodoCompleted', record)"
+    - "CALL Storage.CommitTransaction"
+  }
+
+  ON_ERROR {
+    - "CALL Storage.RollbackTransaction"
+    - "RETHROW error to CONTRACT layer"
+  }
+}
+```
 
 ### 7.3 Contract Facet
 
-Purpose: externally invokable operations.
-Syntax: `CONTRACT <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
+Purpose: Execution guardrails and guaranteed outcomes (Design by Contract). Contracts define what an operation must enforce and guarantee, rather than how it achieves it line-by-line.
 
-Common blocks:
+Syntax: CONTRACT <Name> { ... } blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
-- `CONTRACT`
-- `INTENT`
-- `INPUT`
-- `AUTHZ`
-- `LOGIC`
-- `INTERFACE`
+Common blocks: CONTRACT, INTENT, INPUT, AUTHZ, EXPECTS (pre-conditions), ENSURES (post-conditions/mutations), RETURNS.
 
-Common logic keywords:
+Common logic keywords for ENSURES: PERSISTS, UPDATES, DELETES, EMITS, CALLS.
 
-- `EXECUTE`, `PERSIST`, `SET`, `UPDATE`, `EMIT`, `REQUIRES`, `CALL`, `READ`, `RETURN`
+```ail
+CONTRACT CompleteTodo {
+  INTENT {
+    SUMMARY: "Safely marks an active todo as complete."
+  }
+
+  INPUT {
+    todoId: string required
+  }
+
+  AUTHZ {
+    - "User must be actively authenticated"
+    - "User must be the owner of the Todo record"
+  }
+
+  EXPECTS {
+    - "Todo record must exist in the database"
+    - "Todo.status must currently be 'PENDING'"
+  }
+
+  ENSURES {
+    - UPDATES "Todo.status to 'COMPLETED'"
+    - EMITS "TodoCompletedEvent to the analytics stream"
+  }
+
+  RETURNS {
+    - "The updated Todo entity"
+  }
+}
+```
 
 ### 7.4 Persona Facet
 
-Purpose: user-visible experience.
-Syntax: `PERSONA <Name> { ... }` blocks with nested brace-delimited sections and newline-separated entries (no commas).
+Purpose: User-visible experience, role constraints, and interface mapping. Personas define *who* interacts with the system, while Views define the shared interface surfaces they access. This decoupling allows multiple Personas to share Views without duplication, leveraging implicit conditional rendering based on Contract authorization.
 
-Common blocks:
+Syntax: `PERSONA <Name> { ... }` and `VIEW <Name> { ... }` blocks as top-level constructs, using nested brace-delimited sections and newline-separated entries (no commas).
 
-- `PERSONA`
-- `INTENT`
-- `VIEW`
-- `DISPLAY`
-- `ACTIONS`
-- `form.create` / `form.edit`
+Common `PERSONA` blocks:
+- `PERSONA`: The user archetype or system actor.
+- `INTENT`: The human-readable summary of the persona's goals.
+- `ROLE`: The authorization baseline (maps to `AUTHZ` in Contracts).
+- `ACCESS`: The specific `VIEW` blocks this persona is permitted to load.
+
+Common `VIEW` blocks:
+- `VIEW`: A distinct screen, page, or UI state shared across permitted Personas.
+- `INTENT`: The human-readable summary of the view.
+- `DISPLAY`: The read-only data requirements (supports natural language conditionals, e.g., "If Admin, show X").
+- `ACTIONS`: The interactive elements available in the view (triggers mapping directly to Contracts).
+
+```ail
+PERSONA StandardUser {
+  ROLE {
+    - "user:standard"
+  }
+  ACCESS {
+    - VIEW TodoDashboard
+  }
+}
+
+PERSONA AdminUser {
+  ROLE {
+    - "user:admin"
+  }
+  ACCESS {
+    - VIEW TodoDashboard
+    - VIEW SystemSettings
+  }
+}
+
+VIEW TodoDashboard {
+  INTENT {
+    SUMMARY: "The primary unified dashboard for managing tasks."
+  }
+  
+  DISPLAY {
+    - "A list of Todo items filtered by status='PENDING'"
+    - "A progress indicator showing completed vs total daily tasks"
+    - "If AdminUser, show the 'Assigned To' column"
+  }
+  
+  ACTIONS {
+    - "Clicking 'Add Task' -> CALL CreateTodo"
+    - "Tapping checkbox -> CALL CompleteTodo"
+    - "Clicking 'Reassign' -> CALL ReassignTodo"
+  }
+}
+```
 
 ### 7.5 Detail Construct Intent Rule
 
@@ -420,11 +512,14 @@ All top-level detail constructs (`SCHEMA`, `FLOW`, `CONTRACT`, `PERSONA`) must i
 `DEPENDENCIES` may appear in intent files and/or detail files.
 
 ```ail
-DEPENDENCIES:
-  IMPORT:
-    - company.storage.Contract AS Storage
-  REQUIRES:
-    - Identity AS AssigneeUsers
+DEPENDENCIES {
+  IMPORT {
+    company.storage.Contract AS Storage
+  }
+  REQUIRES {
+    Identity AS AssigneeUsers
+  }
+}
 ```
 
 - `IMPORT` references concrete provider surfaces.
@@ -447,24 +542,22 @@ If dependency declarations are spread across files:
 Mappings are declared in `/ail/mappings` files with `facet=mapping`.
 
 ```ail
-AIM: company.subsystem#mapping@1.4
-
 MAP AssigneeUsers {
-  TO FEATURE: company.identity
-  OPERATION_MAP:
-    - AssigneeUsers.ResolveUser -> Identity.ResolveUser
+  TO FEATURE: "company.identity"
+  OPERATION_MAP {
+    - "AssigneeUsers.ResolveUser -> Identity.ResolveUser"
+  }
 }
 ```
 
 or
 
 ```ail
-AIM: company.subsystem#mapping@1.4
-
 MAP AssigneeUsers {
-  TO EXTERNAL: ExistingCode.IdentityGateway
-  OPERATION_MAP:
-    - AssigneeUsers.ResolveUser -> ExistingCode.IdentityGateway.resolveUser
+  TO FEATURE: "company.identity"
+  OPERATION_MAP {
+    - "AssigneeUsers.ResolveUser -> Identity.ResolveUser"
+  }
 }
 ```
 
@@ -537,7 +630,7 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 
 ### 11.2 Informational Diagnostics
 
-- missing optional `BEHAVIOR` / `TESTS`
+- missing optional `TESTS`
 - no detail facets provided
 - inline facet overridden by external facet
 - embedded facet block overridden by top-level or external facet

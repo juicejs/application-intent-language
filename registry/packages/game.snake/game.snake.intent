@@ -2,35 +2,30 @@ AIM: game.snake#intent@1.3
 
 INTENT SnakeGame {
   SUMMARY: "A classic single-player snake game where the player grows the snake, avoids collisions, and tries to reach the top-10 leaderboard."
-  REQUIREMENTS:
-    - Gameplay runs on a fixed 20x20 board.
-    - Snake movement is server-tick driven at a fixed interval.
-    - Direct opposite-direction turns are invalid.
-    - Wall collision and self-collision end the run immediately.
-    - Eating food increases score by exactly one and triggers new food spawn on an empty cell.
-    - Finished runs may submit anonymous initials and persist only top ten ranked scores.
+  REQUIREMENTS {
+    - "Gameplay runs on a fixed 20x20 board."
+    - "Snake movement is server-tick driven at a fixed interval."
+    - "Direct opposite-direction turns are invalid."
+    - "Wall collision and self-collision end the run immediately."
+    - "Eating food increases score by exactly one and triggers new food spawn on an empty cell."
+    - "Finished runs may submit anonymous initials and persist only top ten ranked scores."
+  }
+
+  TESTS {
+    - "Starting a game yields running status, valid initial snake cells, and valid food cell in bounds."
+    - "Tick without food moves one step and preserves snake length."
+    - "Tick with food grows snake by one and increments score by one."
+    - "Opposite-direction input is rejected while valid turns are accepted."
+    - "Wall collision transitions session to game_over."
+    - "Self-collision transitions session to game_over."
+    - "SubmitScore is allowed only after game_over and stores normalized initials."
+    - "Leaderboard retains only top 10 ranked entries after repeated submissions."
+  }
 }
 
-INCLUDES:
-  - schema: game.snake.schema.intent
-  - flow: game.snake.flow.intent
-  - contract: game.snake.contract.intent
-  - persona: game.snake.persona.intent
-
-BEHAVIOR:
-  - StartGame creates a new running session with deterministic initial snake state.
-  - AdvanceTick computes the next head, applies collision checks, and advances snake body.
-  - On food consumption, score increments by one and food respawns in an unoccupied coordinate.
-  - On collision, status transitions to game_over and tick processing stops.
-  - SubmitScore normalizes initials to three uppercase letters, records the score, and trims leaderboard to top 10.
-  - GetTopScores returns entries ordered by score descending and achievedAt ascending.
-
-TESTS:
-  - Starting a game yields running status, valid initial snake cells, and valid food cell in bounds.
-  - Tick without food moves one step and preserves snake length.
-  - Tick with food grows snake by one and increments score by one.
-  - Opposite-direction input is rejected while valid turns are accepted.
-  - Wall collision transitions session to game_over.
-  - Self-collision transitions session to game_over.
-  - SubmitScore is allowed only after game_over and stores normalized initials.
-  - Leaderboard retains only top 10 ranked entries after repeated submissions.
+INCLUDES {
+  schema: "game.snake.schema.intent"
+  flow: "game.snake.flow.intent"
+  contract: "game.snake.contract.intent"
+  persona: "game.snake.persona.intent"
+}

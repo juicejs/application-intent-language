@@ -58,16 +58,16 @@ AIM: game.snake#intent@1.4
 
 INTENT SnakeGame {
   SUMMARY: "A single-player snake game with top-10 scores."
-  REQUIREMENTS:
-    - Movement is tick-based.
-    - Wall and self collisions end the run.
+  REQUIREMENTS {
+    - "Movement is tick-based."
+    - "Wall and self collisions end the run."
+  }
 
-  SCHEMA: |
-    entities:
-      - name: GameSession
-        fields:
-          - name: score
-            type: integer
+  SCHEMA GameSession {
+    ATTRIBUTES {
+      score: integer required min(0)
+    }
+  }
 }
 ```
 
