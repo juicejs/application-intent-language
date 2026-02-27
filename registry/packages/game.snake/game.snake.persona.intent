@@ -1,19 +1,15 @@
 AIM: game.snake#persona@1.3
 
 PERSONA Player {
-  INTENT {
-    SUMMARY: "Lets a player run a game, submit score, and view rankings."
-    REQUIREMENTS {
-      - "All player actions must map to defined contracts."
-    }
+  SUMMARY: "Lets a player run a game, submit score, and view rankings."
+  REQUIREMENTS {
+    - "All player actions must map to defined contracts."
   }
 
   VIEW Game {
-    INTENT {
-      SUMMARY: "Shows active gameplay state and directional controls."
-      REQUIREMENTS {
-        - "Board state and score are visible while playing."
-      }
+    SUMMARY: "Shows active gameplay state and directional controls."
+    REQUIREMENTS {
+      - "Board state and score are visible while playing."
     }
 
     DISPLAY {
@@ -32,11 +28,9 @@ PERSONA Player {
   }
 
   VIEW Leaderboard {
-    INTENT {
-      SUMMARY: "Shows persistent high scores and score submission action."
-      REQUIREMENTS {
-        - "Player can submit score after game over and refresh top scores."
-      }
+    SUMMARY: "Shows persistent high scores and score submission action."
+    REQUIREMENTS {
+      - "Player can submit score after game over and refresh top scores."
     }
 
     DISPLAY {

@@ -13,12 +13,10 @@ INTENT WeatherLookup {
   }
 
   SCHEMA WeatherQuery {
-    INTENT {
-      SUMMARY: "Represents one weather lookup request entered by a user."
-      REQUIREMENTS {
-        - "Input city value must be present after trimming."
-        - "Normalized city is stored for deterministic provider calls."
-      }
+    SUMMARY: "Represents one weather lookup request entered by a user."
+    REQUIREMENTS {
+      - "Input city value must be present after trimming."
+      - "Normalized city is stored for deterministic provider calls."
     }
 
     ATTRIBUTES {
@@ -30,12 +28,10 @@ INTENT WeatherLookup {
   }
 
   SCHEMA WeatherSnapshot {
-    INTENT {
-      SUMMARY: "Represents the current weather response for a normalized city."
-      REQUIREMENTS {
-        - "Snapshot reflects one provider fetch result."
-        - "Snapshot is read-only for clients."
-      }
+    SUMMARY: "Represents the current weather response for a normalized city."
+    REQUIREMENTS {
+      - "Snapshot reflects one provider fetch result."
+      - "Snapshot is read-only for clients."
     }
 
     ATTRIBUTES {
@@ -53,11 +49,9 @@ INTENT WeatherLookup {
   }
 
   FLOW ValidateCityInput {
-    INTENT {
-      SUMMARY: "Validates and normalizes a user-provided city name."
-      REQUIREMENTS {
-        - "Empty or whitespace-only values are rejected."
-      }
+    SUMMARY: "Validates and normalizes a user-provided city name."
+    REQUIREMENTS {
+      - "Empty or whitespace-only values are rejected."
     }
 
     TRIGGER: Contract.GetCurrentWeather
@@ -69,12 +63,10 @@ INTENT WeatherLookup {
   }
 
   FLOW FetchCurrentWeather {
-    INTENT {
-      SUMMARY: "Calls a public weather API and maps the response to WeatherSnapshot."
-      REQUIREMENTS {
-        - "Unknown city results in a not-found outcome."
-        - "Provider failure results in retry-friendly error outcome."
-      }
+    SUMMARY: "Calls a public weather API and maps the response to WeatherSnapshot."
+    REQUIREMENTS {
+      - "Unknown city results in a not-found outcome."
+      - "Provider failure results in retry-friendly error outcome."
     }
 
     TRIGGER: Contract.GetCurrentWeather
@@ -89,11 +81,9 @@ INTENT WeatherLookup {
   }
 
   CONTRACT GetCurrentWeather {
-    INTENT {
-      SUMMARY: "Returns current weather for a user-entered city."
-      REQUIREMENTS {
-        - "Response includes city, temperature, condition, humidity, wind, and retrieval time."
-      }
+    SUMMARY: "Returns current weather for a user-entered city."
+    REQUIREMENTS {
+      - "Response includes city, temperature, condition, humidity, wind, and retrieval time."
     }
 
     INPUT {
@@ -108,19 +98,15 @@ INTENT WeatherLookup {
   }
 
   PERSONA Visitor {
-    INTENT {
-      SUMMARY: "Allows any user to look up current weather by city."
-      REQUIREMENTS {
-        - "User can submit city input and view result or error states."
-      }
+    SUMMARY: "Allows any user to look up current weather by city."
+    REQUIREMENTS {
+      - "User can submit city input and view result or error states."
     }
 
     VIEW WeatherLookup {
-      INTENT {
-        SUMMARY: "Single-screen weather search with result feedback."
-        REQUIREMENTS {
-          - "Loading, success, not-found, and error states are visible."
-        }
+      SUMMARY: "Single-screen weather search with result feedback."
+      REQUIREMENTS {
+        - "Loading, success, not-found, and error states are visible."
       }
 
       DISPLAY {

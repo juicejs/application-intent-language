@@ -18,7 +18,7 @@ A feature is identified by a namespace such as `company.subsystem` (for example 
 In v1.4, each feature uses a **hybrid intent envelope** model:
 
 - required baseline: one intent entry file (`<feature>.intent`)
-- optional precision detail: `schema`, `flow`, `contract`, `persona` authored inline or in separate files
+- optional precision detail: `schema`, `flow`, `contract`, `persona`, `view` authored inline or in separate files
 
 No detail facet is required for a feature to be valid.
 
@@ -41,7 +41,7 @@ AIM: juice.games.snake#schema@2.1
 ### 2.1 Grammar
 
 ```regex
-^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|mapping)@([0-9]+\.[0-9]+)$
+^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|view|mapping)@([0-9]+\.[0-9]+)$
 ```
 
 Rules:
@@ -53,6 +53,7 @@ Rules:
   - `flow`
   - `contract`
   - `persona`
+  - `view`
   - `mapping`
 - `<version>` is short SemVer form `x.y`.
 
@@ -99,6 +100,7 @@ Typical layout:
   game.snake.flow.intent
   game.snake.contract.intent
   game.snake.persona.intent
+  game.snake.view.intent
   mappings/
     game.snake.mapping.intent
 ```
@@ -232,11 +234,9 @@ INTENT WeatherLookup {
 }
 
 SCHEMA WeatherSnapshot {
-  INTENT {
-    SUMMARY: "Authoritative schema detail."
-    REQUIREMENTS {
-      - "Humidity is required."
-    }
+  SUMMARY: "Authoritative schema detail."
+  REQUIREMENTS {
+    - "Humidity is required."
   }
 
   ATTRIBUTES {
@@ -259,6 +259,7 @@ INCLUDES {
   flow: "game.snake.flow.intent"
   contract: "game.snake.contract.intent"
   persona: "game.snake.persona.intent"
+  view: "game.snake.view.intent"
 }
 ```
 
@@ -266,7 +267,7 @@ INCLUDES {
 
 For each entry:
 
-- key must be one of `schema|flow|contract|persona`
+- key must be one of `schema|flow|contract|persona|view`
 - value must be a relative `.intent` path
 - target file must exist
 - target file preamble must match:
@@ -326,7 +327,7 @@ When authored inline inside an intent envelope, facet constructs use the same gr
 
 ### 7.0 Source Authority And Precedence
 
-For each facet (`schema|flow|contract|persona`), effective source is:
+For each facet (`schema|flow|contract|persona|view`), effective source is:
 
 | Priority | Source | Notes |
 | --- | --- | --- |
@@ -345,7 +346,7 @@ Syntax: `SCHEMA <Name> { ... }` blocks with nested brace-delimited sections and 
 Common blocks:
 
 - `SCHEMA`
-- `INTENT`
+- `SUMMARY`
 - `ATTRIBUTES`
 - `RELATIONSHIPS`
 - `CONSTRAINTS`
@@ -365,7 +366,7 @@ Syntax: `FLOW <Name> { ... }` blocks with nested brace-delimited sections and ne
 Common blocks:
 
 - `FLOW`
-- `INTENT`
+- `SUMMARY`
 - `TRIGGER`
 - `STEPS`
 - `ON_ERROR`
@@ -376,9 +377,7 @@ Common logic keywords for STEPS:
 
 ```ail
 FLOW ExecuteTodoCompletion {
-  INTENT {
-    SUMMARY: "Orchestrates the database update and event publishing for completing a todo."
-  }
+  SUMMARY: "Orchestrates the database update and event publishing for completing a todo."
 
   TRIGGER {
     - "Invoked by CompleteTodo CONTRACT"
@@ -407,15 +406,13 @@ Purpose: Execution guardrails and guaranteed outcomes (Design by Contract). Cont
 
 Syntax: CONTRACT <Name> { ... } blocks with nested brace-delimited sections and newline-separated entries (no commas).
 
-Common blocks: CONTRACT, INTENT, INPUT, AUTHZ, EXPECTS (pre-conditions), ENSURES (post-conditions/mutations), RETURNS.
+Common blocks: CONTRACT, SUMMARY, INPUT, AUTHZ, EXPECTS (pre-conditions), ENSURES (post-conditions/mutations), RETURNS.
 
 Common logic keywords for ENSURES: PERSISTS, UPDATES, DELETES, EMITS, CALLS.
 
 ```ail
 CONTRACT CompleteTodo {
-  INTENT {
-    SUMMARY: "Safely marks an active todo as complete."
-  }
+  SUMMARY: "Safely marks an active todo as complete."
 
   INPUT {
     todoId: string required
@@ -444,21 +441,15 @@ CONTRACT CompleteTodo {
 
 ### 7.4 Persona Facet
 
-Purpose: User-visible experience, role constraints, and interface mapping. Personas define *who* interacts with the system, while Views define the shared interface surfaces they access. This decoupling allows multiple Personas to share Views without duplication, leveraging implicit conditional rendering based on Contract authorization.
+Purpose: User-visible actor definition, role constraints, and interface access mapping. Personas define *who* interacts with the system and which shared `VIEW`s they are permitted to load.
 
-Syntax: `PERSONA <Name> { ... }` and `VIEW <Name> { ... }` blocks as top-level constructs, using nested brace-delimited sections and newline-separated entries (no commas).
+Syntax: `PERSONA <Name> { ... }` blocks as top-level constructs, using nested brace-delimited sections and newline-separated entries (no commas).
 
 Common `PERSONA` blocks:
 - `PERSONA`: The user archetype or system actor.
-- `INTENT`: The human-readable summary of the persona's goals.
+- `SUMMARY`: The human-readable summary of the persona's goals.
 - `ROLE`: The authorization baseline (maps to `AUTHZ` in Contracts).
 - `ACCESS`: The specific `VIEW` blocks this persona is permitted to load.
-
-Common `VIEW` blocks:
-- `VIEW`: A distinct screen, page, or UI state shared across permitted Personas.
-- `INTENT`: The human-readable summary of the view.
-- `DISPLAY`: The read-only data requirements (supports natural language conditionals, e.g., "If Admin, show X").
-- `ACTIONS`: The interactive elements available in the view (triggers mapping directly to Contracts).
 
 ```ail
 PERSONA StandardUser {
@@ -479,11 +470,23 @@ PERSONA AdminUser {
     - VIEW SystemSettings
   }
 }
+```
 
+### 7.5 View Facet
+
+Purpose: Shared interface surfaces and interaction mapping. Views define *what* a user can see and do on a screen, page, or UI state, and may be reused across multiple Personas without duplication.
+
+Syntax: `VIEW <Name> { ... }` blocks as top-level constructs, using nested brace-delimited sections and newline-separated entries (no commas).
+
+Common `VIEW` blocks:
+- `VIEW`: A distinct screen, page, or UI state shared across permitted Personas.
+- `SUMMARY`: The human-readable summary of the view.
+- `DISPLAY`: The read-only data requirements (supports natural language conditionals, e.g., "If Admin, show X").
+- `ACTIONS`: The interactive elements available in the view (triggers mapping directly to Contracts).
+
+```ail
 VIEW TodoDashboard {
-  INTENT {
-    SUMMARY: "The primary unified dashboard for managing tasks."
-  }
+  SUMMARY: "The primary unified dashboard for managing tasks."
   
   DISPLAY {
     - "A list of Todo items filtered by status='PENDING'"
@@ -499,9 +502,11 @@ VIEW TodoDashboard {
 }
 ```
 
-### 7.5 Detail Construct Intent Rule
+### 7.6 View And Persona Summary Rule
 
-All top-level detail constructs (`SCHEMA`, `FLOW`, `CONTRACT`, `PERSONA`) must include `INTENT`.
+`VIEW` is a top-level shared UI-surface construct and must include `SUMMARY`.
+
+`PERSONA` is a separate top-level access/role construct. It may include `SUMMARY`, but `ROLE` + `ACCESS` alone are sufficient when the persona acts only as a role/access declaration.
 
 ---
 
@@ -540,10 +545,11 @@ If dependency declarations are spread across files:
 ### 8.4 Mapping Files
 
 Mappings are declared in `/ail/mappings` files with `facet=mapping`.
+`TARGET` identifies the destination capability provider, whether it is another AIM feature namespace or an external implementation surface.
 
 ```ail
 MAP AssigneeUsers {
-  TO FEATURE: "company.identity"
+  TARGET: "company.identity"
   OPERATION_MAP {
     - "AssigneeUsers.ResolveUser -> Identity.ResolveUser"
   }
@@ -554,9 +560,9 @@ or
 
 ```ail
 MAP AssigneeUsers {
-  TO FEATURE: "company.identity"
+  TARGET: "ExistingCode.IdentityGateway"
   OPERATION_MAP {
-    - "AssigneeUsers.ResolveUser -> Identity.ResolveUser"
+    - "AssigneeUsers.ResolveUser -> ExistingCode.IdentityGateway.resolveUser"
   }
 }
 ```
@@ -570,7 +576,7 @@ Unresolved required aliases remain hard errors.
 When relevant detail facets exist, the chain is:
 
 ```text
-Persona -> Contract -> Flow / Schema
+Persona -> View -> Contract -> Flow / Schema
 ```
 
 `Schema` interaction includes reads and writes.
@@ -664,28 +670,30 @@ Tier impacts expected precision, generated structure depth, and strictness of tr
 ## 13. Conformance Scenarios
 
 1. Valid header parse: `AIM: juice.games.snake#schema@2.1`.
-2. Invalid feature namespace: `AIM: Snake-App#schema@2.1` -> hard error.
-3. Invalid facet: `AIM: juice.games.snake#data@2.1` -> hard error.
-4. Invalid version: `AIM: juice.games.snake#schema@2.1.0` -> hard error.
-5. Filename/header mismatch -> hard error.
-6. Legacy metadata token in source -> hard error.
-7. Intent-only feature parses and synthesizes with reduced-fidelity informational note.
-8. Valid `INCLUDES` resolves linked facets.
-9. Included file missing -> hard error.
-10. Included file facet mismatch -> hard error.
-11. Inline + external same facet -> informational override note, external used.
-12. Parse success: intent file with embedded `SCHEMA <Name> { ... }` block only.
-13. Parse success: intent file with embedded `SCHEMA/FLOW/CONTRACT/PERSONA` blocks only.
-14. Parse success: intent file with embedded DSL block + top-level blocks + `INCLUDES`.
-15. Precedence: linked external overrides top-level and embedded DSL blocks.
-16. Precedence: top-level overrides embedded DSL blocks when no external exists.
-17. Hard failure: invalid embedded facet key (`DATA:`).
-18. Hard failure: malformed embedded block syntax or mismatched curly braces when selected as effective source.
-19. Informational note: embedded DSL block overridden by top-level or external facet.
-20. Existing separate facet projects remain valid when linked via intent `INCLUDES`.
-21. Unresolved `REQUIRES` still hard-fails.
-22. Registry package entry resolves to existing `#intent` source matching index `name` and `version`.
-23. Remote package fetch materialized into local `/ail` enables subsequent local-only rebuild.
+2. Valid header parse: `AIM: juice.games.snake#view@2.1`.
+3. Invalid feature namespace: `AIM: Snake-App#schema@2.1` -> hard error.
+4. Invalid facet: `AIM: juice.games.snake#data@2.1` -> hard error.
+5. Invalid version: `AIM: juice.games.snake#schema@2.1.0` -> hard error.
+6. Filename/header mismatch -> hard error.
+7. Legacy metadata token in source -> hard error.
+8. Intent-only feature parses and synthesizes with reduced-fidelity informational note.
+9. Valid `INCLUDES` resolves linked facets.
+10. Valid `INCLUDES` resolves linked view facet.
+11. Included file missing -> hard error.
+12. Included file facet mismatch -> hard error.
+13. Inline + external same facet -> informational override note, external used.
+14. Parse success: intent file with embedded `SCHEMA <Name> { ... }` block only.
+15. Parse success: intent file with embedded `SCHEMA/FLOW/CONTRACT/PERSONA/VIEW` blocks only.
+16. Parse success: intent file with embedded DSL block + top-level blocks + `INCLUDES`.
+17. Precedence: linked external overrides top-level and embedded DSL blocks.
+18. Precedence: top-level overrides embedded DSL blocks when no external exists.
+19. Hard failure: invalid embedded facet key (`DATA:`).
+20. Hard failure: malformed embedded block syntax or mismatched curly braces when selected as effective source.
+21. Informational note: embedded DSL block overridden by top-level or external facet.
+22. Existing separate facet projects remain valid when linked via intent `INCLUDES`.
+23. Unresolved `REQUIRES` still hard-fails.
+24. Registry package entry resolves to existing `#intent` source matching index `name` and `version`.
+25. Remote package fetch materialized into local `/ail` enables subsequent local-only rebuild.
 
 ---
 

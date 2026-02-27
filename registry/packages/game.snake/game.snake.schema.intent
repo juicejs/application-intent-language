@@ -1,12 +1,10 @@
 AIM: game.snake#schema@1.3
 
 SCHEMA GameSession {
-  INTENT {
-    SUMMARY: "Represents one playable snake run on a fixed board."
-    REQUIREMENTS {
-      - "Board remains fixed at 20x20 for the whole session."
-      - "Session ends immediately on wall or self collision."
-    }
+  SUMMARY: "Represents one playable snake run on a fixed board."
+  REQUIREMENTS {
+    - "Board remains fixed at 20x20 for the whole session."
+    - "Session ends immediately on wall or self collision."
   }
 
   ATTRIBUTES {
@@ -31,12 +29,10 @@ SCHEMA GameSession {
 }
 
 SCHEMA ScoreEntry {
-  INTENT {
-    SUMMARY: "Stores one leaderboard score for anonymous ranking."
-    REQUIREMENTS {
-      - "Initials must be three uppercase letters."
-      - "Leaderboard keeps top 10 by score desc then achievedAt asc."
-    }
+  SUMMARY: "Stores one leaderboard score for anonymous ranking."
+  REQUIREMENTS {
+    - "Initials must be three uppercase letters."
+    - "Leaderboard keeps top 10 by score desc then achievedAt asc."
   }
 
   ATTRIBUTES {

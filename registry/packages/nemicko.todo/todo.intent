@@ -17,9 +17,7 @@ INTENT TaskManager {
 
   # --- 1. STATE (The Data) ---
   SCHEMA TodoItem {
-    INTENT {
-      SUMMARY: "The core data entity representing a single user task."
-    }
+    SUMMARY: "The core data entity representing a single user task."
     ATTRIBUTES {
       id: string generated unique
       ownerId: string required
@@ -32,9 +30,7 @@ INTENT TaskManager {
 
   # --- 2. RULES (The Guardrails) ---
   CONTRACT CreateTodo {
-    INTENT {
-      SUMMARY: "Creates a new pending task for the active user."
-    }
+    SUMMARY: "Creates a new pending task for the active user."
     INPUT {
       title: string required
       description: string optional
@@ -55,9 +51,7 @@ INTENT TaskManager {
   }
 
   CONTRACT CompleteTodo {
-    INTENT {
-      SUMMARY: "Safely marks an active task as complete."
-    }
+    SUMMARY: "Safely marks an active task as complete."
     INPUT {
       todoId: string required
     }
@@ -79,9 +73,7 @@ INTENT TaskManager {
 
   # --- 3. MECHANICS (The Internal Plumbing) ---
   FLOW ExecuteCreateTodo {
-    INTENT {
-      SUMMARY: "Orchestrates database insertion and event publishing for new tasks."
-    }
+    SUMMARY: "Orchestrates database insertion and event publishing for new tasks."
     TRIGGER {
       - "Invoked by CreateTodo CONTRACT"
     }
@@ -99,9 +91,7 @@ INTENT TaskManager {
 
   # --- 4. ACTORS & UI (The Triggers) ---
   PERSONA StandardUser {
-    INTENT {
-      SUMMARY: "A regular individual managing their personal task list."
-    }
+    SUMMARY: "A regular individual managing their personal task list."
     ROLE {
       - "user:standard"
     }
@@ -111,9 +101,7 @@ INTENT TaskManager {
   }
 
   VIEW TodoDashboard {
-    INTENT {
-      SUMMARY: "The main interface for viewing and interacting with the task list."
-    }
+    SUMMARY: "The main interface for viewing and interacting with the task list."
     DISPLAY {
       - "A list of TodoItem records where ownerId=currentUser.id"
       - "Visual distinction between PENDING and COMPLETED tasks"

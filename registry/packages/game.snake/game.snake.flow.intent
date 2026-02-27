@@ -1,12 +1,10 @@
 AIM: game.snake#flow@1.3
 
 FLOW InitializeSession {
-  INTENT {
-    SUMMARY: "Starts a new runnable snake session with default state."
-    REQUIREMENTS {
-      - "Session must start in running state."
-      - "Initial snake and food must be valid for the board."
-    }
+  SUMMARY: "Starts a new runnable snake session with default state."
+  REQUIREMENTS {
+    - "Session must start in running state."
+    - "Initial snake and food must be valid for the board."
   }
 
   TRIGGER: Contract.StartGame | Contract.RestartGame
@@ -19,12 +17,10 @@ FLOW InitializeSession {
 }
 
 FLOW AdvanceTick {
-  INTENT {
-    SUMMARY: "Advances snake state by one tick and applies core game rules."
-    REQUIREMENTS {
-      - "Wall and self collision must end the run."
-      - "Food consumption must increment score by one."
-    }
+  SUMMARY: "Advances snake state by one tick and applies core game rules."
+  REQUIREMENTS {
+    - "Wall and self collision must end the run."
+    - "Food consumption must increment score by one."
   }
 
   TRIGGER: Internal.GameTick
@@ -40,11 +36,9 @@ FLOW AdvanceTick {
 }
 
 FLOW ApplyDirectionChange {
-  INTENT {
-    SUMMARY: "Accepts player turns while rejecting immediate reverse turns."
-    REQUIREMENTS {
-      - "Opposite-direction inputs must be rejected."
-    }
+  SUMMARY: "Accepts player turns while rejecting immediate reverse turns."
+  REQUIREMENTS {
+    - "Opposite-direction inputs must be rejected."
   }
 
   TRIGGER: Contract.ChangeDirection
@@ -58,11 +52,9 @@ FLOW ApplyDirectionChange {
 }
 
 FLOW EndSession {
-  INTENT {
-    SUMMARY: "Marks session as game over and stops ticking."
-    REQUIREMENTS {
-      - "Session must transition to game_over once collision is detected."
-    }
+  SUMMARY: "Marks session as game over and stops ticking."
+  REQUIREMENTS {
+    - "Session must transition to game_over once collision is detected."
   }
 
   TRIGGER: Internal.CollisionDetected
@@ -76,11 +68,9 @@ FLOW EndSession {
 }
 
 FLOW SpawnFood {
-  INTENT {
-    SUMMARY: "Places food in an unoccupied in-bounds coordinate."
-    REQUIREMENTS {
-      - "Food must not overlap snake cells."
-    }
+  SUMMARY: "Places food in an unoccupied in-bounds coordinate."
+  REQUIREMENTS {
+    - "Food must not overlap snake cells."
   }
 
   TRIGGER: Internal.SpawnFoodRequested
@@ -94,11 +84,9 @@ FLOW SpawnFood {
 }
 
 FLOW FinalizeLeaderboard {
-  INTENT {
-    SUMMARY: "Persists final score and enforces top-10 retention."
-    REQUIREMENTS {
-      - "Submission is valid only after game_over."
-    }
+  SUMMARY: "Persists final score and enforces top-10 retention."
+  REQUIREMENTS {
+    - "Submission is valid only after game_over."
   }
 
   TRIGGER: Contract.SubmitScore

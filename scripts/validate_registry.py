@@ -9,13 +9,13 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PACKAGES = ROOT / "registry" / "packages"
 REGISTRY_INDEX = ROOT / "registry" / "index.json"
 HEADER_RE = re.compile(
-    r"^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|mapping)@([0-9]+\.[0-9]+)$"
+    r"^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|view|mapping)@([0-9]+\.[0-9]+)$"
 )
 FEATURE_RE = re.compile(r"^[a-z0-9]+(?:\.[a-z0-9]+)*$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+$")
 LEGACY_TOKENS = (":::AIL_METADATA", ":::AIM_METADATA", "FEATURE:", "FACET:", "VERSION:")
 INCLUDES_START_RE = re.compile(r"^\s*INCLUDES\s*\{\s*$")
-INCLUDES_ENTRY_RE = re.compile(r'^\s*(schema|flow|contract|persona)\s*:\s*"([^"]+)"\s*$')
+INCLUDES_ENTRY_RE = re.compile(r'^\s*(schema|flow|contract|persona|view)\s*:\s*"([^"]+)"\s*$')
 INCLUDES_END_RE = re.compile(r"^\s*}\s*$")
 
 
