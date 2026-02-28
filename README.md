@@ -22,6 +22,8 @@ Optional precision facets can be added:
 - `<feature>.flow.intent`
 - `<feature>.contract.intent`
 - `<feature>.persona.intent`
+- `<feature>.view.intent`
+- `<feature>.event.intent`
 
 This enables progressive detail:
 
@@ -86,7 +88,7 @@ After deploy, verify:
 ## Quick Example
 
 ```ail
-AIM: game.snake#intent@1.4
+AIM: game.snake#intent@1.5
 
 INTENT SnakeGame {
   SUMMARY: "A single-player snake game with top-10 scores."
@@ -124,6 +126,17 @@ It is also published as a registry package:
 
 - [`registry/packages/game.snake`](./registry/packages/game.snake)
 
+For a minimal event-focused example, use:
+
+- [`registry/packages/terminal.countdown`](./registry/packages/terminal.countdown)
+
+It keeps the shape intentionally small:
+
+- inline `SCHEMA`
+- linked external `CONTRACT`
+- linked external `EVENT`
+- terminal-first behavior with no `VIEW` or `PERSONA` layer
+
 ## Local AI Fetch Flow
 
 Use this sequence:
@@ -137,4 +150,4 @@ Use this sequence:
 
 ## Status
 
-Current spec version: **AIM v1.4**.
+Current spec version: **AIM v1.5**.

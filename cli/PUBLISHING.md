@@ -1,6 +1,6 @@
-# Publishing AIM CLI to PyPI
+# Publishing Sinth to PyPI
 
-Guide for publishing the `aim-cli` package to PyPI.
+Guide for publishing the `sinth` package to PyPI.
 
 ## Prerequisites
 
@@ -15,14 +15,22 @@ Guide for publishing the `aim-cli` package to PyPI.
 
 ### 1. Update Version
 
-Edit `pyproject.toml` and update version:
+**Edit both files to keep version in sync:**
+
+`pyproject.toml`:
 ```toml
 version = "0.1.1"  # Increment version
 ```
 
-Also update `aim_cli/__init__.py`:
+`aim_cli/__init__.py`:
 ```python
 __version__ = "0.1.1"
+```
+
+**Test the version:**
+```bash
+python3 -m aim_cli.cli --version
+# Should output: sinth 0.1.1
 ```
 
 ### 2. Build Distribution
@@ -36,8 +44,8 @@ python -m build
 ```
 
 This creates:
-- `dist/aim_cli-0.1.0-py3-none-any.whl` (wheel)
-- `dist/aim-cli-0.1.0.tar.gz` (source)
+- `dist/sinth-0.1.0-py3-none-any.whl` (wheel)
+- `dist/sinth-0.1.0.tar.gz` (source)
 
 ### 3. Test on Test PyPI (Optional)
 
@@ -46,11 +54,11 @@ This creates:
 python -m twine upload --repository testpypi dist/*
 
 # Install from Test PyPI
-pip install --index-url https://test.pypi.org/simple/ aim-cli
+pip install --index-url https://test.pypi.org/simple/ sinth
 
 # Test it works
-aim --help
-aim fetch weather
+sinth --help
+sinth fetch weather
 ```
 
 ### 4. Upload to PyPI
@@ -66,14 +74,14 @@ python -m twine upload dist/*
 
 ```bash
 # Uninstall test version
-pip uninstall aim-cli
+pip uninstall sinth
 
 # Install from PyPI
-pip install aim-cli
+pip install sinth
 
 # Test
-aim --help
-aim fetch weather
+sinth --help
+sinth fetch weather
 ```
 
 ## Using API Tokens (Recommended)
@@ -83,7 +91,7 @@ aim fetch weather
 1. Go to https://pypi.org/manage/account/
 2. Scroll to "API tokens"
 3. Click "Add API token"
-4. Name: `aim-cli`
+4. Name: `sinth`
 5. Scope: Entire account (or specific project)
 6. Copy the token (starts with `pypi-`)
 
@@ -167,8 +175,9 @@ Before publishing:
 
 ## Package Information
 
-- **Package name**: `aim-cli`
-- **Command**: `aim`
+- **Package name**: `sinth`
+- **Command**: `sinth`
+- **Description**: Sinth — the CLI for AIM. Synthesize intent into reality.
 - **Homepage**: https://intentmodel.dev
 - **Repository**: https://github.com/juicejs/application-intent-language
-- **PyPI**: https://pypi.org/project/aim-cli/
+- **PyPI**: https://pypi.org/project/sinth/

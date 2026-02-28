@@ -2,6 +2,9 @@
 """
 Prompt generation for AIM CLI
 Build synthesis prompts for AI assistants
+
+Copyright (c) 2026 Juice d.o.o (https://juice.com.hr)
+Licensed under MIT License
 """
 
 import subprocess
@@ -63,8 +66,9 @@ Tech Stack:
 {context_section}
 Instructions:
 Read the intent files in ./aim/ and synthesize production-ready code
-following the AIM specification. Implement all requirements defined in
-the INTENT, SCHEMA, FLOW, CONTRACT, and VIEW facets.
+following the AIM v1.5 specification. Implement all requirements defined
+across all facets (INTENT, SCHEMA, FLOW, CONTRACT, PERSONA, VIEW, EVENT,
+MAPPING as applicable).
 
 Start by understanding the intent structure, then generate a complete
 implementation with proper error handling, validation, and tests."""

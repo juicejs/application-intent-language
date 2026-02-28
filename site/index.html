@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Application Intent Model</title>
+    <title>Sinth - Application Intent Model</title>
     <link rel="stylesheet" href="./assets/site.css">
     <!-- 100% privacy-first analytics -->
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
@@ -27,6 +27,29 @@
         <a class="btn secondary" href="./spec/">Read Specification</a>
         <a class="btn secondary" href="./registry/publish.html">Publish Package</a>
         <a class="btn secondary" href="https://github.com/anthropics/application-intent-language" target="_blank" rel="noopener">GitHub Repo</a>
+      </div>
+    </section>
+
+    <section class="cli-banner panel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 2rem; margin: 2rem 0; border-radius: 12px;">
+      <div style="max-width: 800px; margin: 0 auto;">
+        <h2 style="color: white; margin-bottom: 1rem; font-size: 1.8rem;">✨ Sinth — the CLI for AIM</h2>
+        <p style="font-size: 1.1rem; opacity: 0.95; margin-bottom: 1.5rem;color:white;">
+          Synthesize intent into reality. Fetch, manage, and synthesize AIM packages from your terminal.
+        </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; margin: 1.5rem 0; font-family: monospace; font-size: 0.95rem;">
+          <code style="color: #131111;">pip install sinth</code>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
+          <a class="btn" style="background: white; color: #667eea; border: none; font-weight: 600;" href="https://github.com/juicejs/application-intent-language/tree/master/cli" target="_blank" rel="noopener">
+            📖 Documentation
+          </a>
+          <a class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);" href="https://pypi.org/project/sinth/" target="_blank" rel="noopener">
+            📦 PyPI Package
+          </a>
+        </div>
+        <div style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.9;">
+          <strong>Features:</strong> Interactive menu • Config wizard • Synthesis prompts • Package management
+        </div>
       </div>
     </section>
 
@@ -88,6 +111,43 @@
           </div>
           <h3>Run</h3>
           <p>Deploy and execute</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cli-showcase" style="margin: 3rem 0;">
+      <h2 style="text-align: center; margin-bottom: 2rem;">Quick Start with Sinth CLI</h2>
+      <div class="grid cols-2" style="gap: 1.5rem;">
+        <div class="card">
+          <h3>🚀 Interactive Menu</h3>
+          <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.25rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;"><code style="color: #d4d4d4;">$ sinth
+
+<span style="color: #569cd6;">╭──────────────────────────────────────────╮</span>
+<span style="color: #569cd6;">│</span>  <span style="color: #4ec9b0; font-weight: bold;">Sinth — Synthesize intent into reality</span>  <span style="color: #569cd6;">│</span>
+<span style="color: #569cd6;">╰──────────────────────────────────────────╯</span>
+
+<span style="color: #dcdcaa;">What would you like to do?</span>
+
+ <span style="color: #ce9178;">1.</span> Initialize new project
+ <span style="color: #ce9178;">2.</span> Fetch package from registry
+ <span style="color: #ce9178;">3.</span> List installed packages
+ <span style="color: #ce9178;">4.</span> Generate synthesis prompt
+ <span style="color: #ce9178;">5.</span> Configure tech stack (wizard)
+ ...</code></pre>
+        </div>
+        <div class="card">
+          <h3>⚡ Direct Commands</h3>
+          <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.25rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;"><code style="color: #d4d4d4;">$ <span style="color: #4ec9b0;">sinth fetch weather</span>
+<span style="color: #4ec9b0;">✓</span> Registry fetched successfully
+<span style="color: #4ec9b0;">✓</span> Saved aim/weather.intent
+<span style="color: #4ec9b0;">✓</span> Package 'weather' installed
+
+$ <span style="color: #4ec9b0;">sinth synth weather</span>
+<span style="color: #4ec9b0;">✓</span> Generated synthesis prompt
+<span style="color: #4ec9b0;">✓</span> Copied to clipboard!
+
+$ <span style="color: #4ec9b0;">sinth config set</span> <span style="color: #ce9178;">stack.frontend React</span>
+<span style="color: #4ec9b0;">✓</span> Configuration updated</code></pre>
         </div>
       </div>
     </section>

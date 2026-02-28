@@ -2,12 +2,16 @@
 """
 Interactive menu system for AIM CLI
 Provides guided workflows and configuration wizards
+
+Copyright (c) 2026 Juice d.o.o (https://juice.com.hr)
+Licensed under MIT License
 """
 
 import sys
 from pathlib import Path
 from typing import Optional, Dict, List, Callable
 
+from aim_cli import __version__
 from aim_cli.cli import (
     Colors, print_success, print_error, print_info, print_warning,
     cmd_init, cmd_fetch, cmd_list, cmd_validate, cmd_info,
@@ -55,6 +59,7 @@ def show_main_menu() -> Optional[int]:
     """Display main menu and get user choice"""
     print_header("Sinth — Synthesize intent into reality")
 
+    print(f"{Colors.CYAN}v{__version__}{Colors.END}\n")
     print("What would you like to do?\n")
     print(" 1. Initialize new project")
     print(" 2. Fetch package from registry")

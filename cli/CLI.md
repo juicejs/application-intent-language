@@ -192,6 +192,12 @@ sinth
 
 This is the recommended entry point for new users and configuration tasks.
 
+**Check version:**
+```bash
+sinth --version
+sinth -v
+```
+
 ### `sinth init`
 Initialize AIM project (creates `aim/` directory).
 

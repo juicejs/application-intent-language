@@ -1,0 +1,21 @@
+AIM: terminal.countdown#event@1.5
+
+EVENT CountdownFinished {
+  SUMMARY: "Published when a terminal countdown reaches zero."
+
+  EMITTED_BY {
+    - "CONTRACT StartCountdown ENSURES [post:2]"
+  }
+
+  PAYLOAD {
+    eventId: uuid generated
+    runId: uuid required
+    durationSeconds: integer required
+    finishedAt: datetime generated
+  }
+
+  ROUTING {
+    - "TOPIC: local.terminal.countdown.finished"
+    - "SUBSCRIBERS: BellRenderer, RunHistory"
+  }
+}

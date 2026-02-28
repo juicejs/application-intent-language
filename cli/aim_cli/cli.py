@@ -2,16 +2,21 @@
 """
 Sinth — the CLI for AIM. Synthesize intent into reality.
 Fetch and manage AIM packages from the registry.
+
+Copyright (c) 2026 Juice d.o.o (https://juice.com.hr)
+Licensed under MIT License
 """
 
 import argparse
 import json
+import re
 import sys
 import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import Optional, Dict, List
 
+from aim_cli import __version__
 from aim_cli.config import (
     load_config, save_config, init_config, get_config_path,
     get_config_value, set_config_value
@@ -197,20 +202,30 @@ def cmd_list(args):
 
 
 def cmd_validate(args):
-    """Validate local intent files"""
+    """Validate local intent files against AIM v1.5 specification"""
     if not AIM_DIR.exists():
         print_warning("No aim/ directory found")
         return
 
     intent_files = list(AIM_DIR.glob("*.intent"))
 
+    # Also check in mappings subdirectory
+    mappings_dir = AIM_DIR / "mappings"
+    if mappings_dir.exists():
+        intent_files.extend(mappings_dir.glob("*.intent"))
+
     if not intent_files:
         print_warning("No .intent files found")
         return
 
-    print_info("Validating intent files...")
+    print_info("Validating intent files against AIM v1.5...")
     valid_count = 0
     invalid_count = 0
+
+    # AIM v1.5 header regex from specification
+    aim_header_pattern = re.compile(
+        r'^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|view|event|mapping)@([0-9]+\.[0-9]+)$'
+    )
 
     for intent_file in intent_files:
         try:
@@ -223,14 +238,20 @@ def cmd_validate(args):
                 invalid_count += 1
                 continue
 
-            # Basic header validation
+            # Validate against AIM v1.5 header format
             header = lines[0].strip()
-            if '#' not in header or '@' not in header:
-                print_error(f"{intent_file.name}: Invalid AIM header format")
+            match = aim_header_pattern.match(header)
+
+            if not match:
+                print_error(f"{intent_file.name}: Invalid AIM v1.5 header format")
+                print_warning(f"  Header: {header}")
+                print_info(f"  Expected: AIM: <feature>#<facet>@<x.y>")
+                print_info(f"  Valid facets: intent, schema, flow, contract, persona, view, event, mapping")
                 invalid_count += 1
                 continue
 
-            print_success(f"{intent_file.name}: Valid")
+            feature, facet, version = match.groups()
+            print_success(f"{intent_file.name}: Valid (AIM: {feature}#{facet}@{version})")
             valid_count += 1
 
         except Exception as e:
@@ -435,6 +456,7 @@ def cmd_synth(args):
 
 def main():
     parser = argparse.ArgumentParser(
+        prog='sinth',
         description='Sinth — the CLI for AIM. Synthesize intent into reality.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -454,6 +476,13 @@ Examples:
   sinth synth --interactive      # Interactive prompt builder
   sinth synth weather --no-copy  # Don't copy to clipboard
         """
+    )
+
+    # Add version argument
+    parser.add_argument(
+        '--version', '-v',
+        action='version',
+        version=f'sinth {__version__}'
     )
 
     subparsers = parser.add_subparsers(dest='command', help='Available commands')

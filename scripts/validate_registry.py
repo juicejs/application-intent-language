@@ -9,14 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PACKAGES = ROOT / "registry" / "packages"
 REGISTRY_INDEX = ROOT / "registry" / "index.json"
 HEADER_RE = re.compile(
-    r"^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|view|mapping)@([0-9]+\.[0-9]+)$"
+    r"^AIM:\s+([a-z0-9]+(?:\.[a-z0-9]+)*)#(intent|schema|flow|contract|persona|view|event|mapping)@([0-9]+\.[0-9]+)$"
 )
 FEATURE_RE = re.compile(r"^[a-z0-9]+(?:\.[a-z0-9]+)*$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+$")
 LEGACY_TOKENS = (":::AIL_METADATA", ":::AIM_METADATA", "FEATURE:", "FACET:", "VERSION:")
 INCLUDES_START_RE = re.compile(r"^\s*INCLUDES\s*\{\s*$")
-INCLUDES_ENTRY_RE = re.compile(r'^\s*(schema|flow|contract|persona|view)\s*:\s*"([^"]+)"\s*$')
+INCLUDES_ENTRY_RE = re.compile(r'^\s*(schema|flow|contract|persona|view|event)\s*:\s*"([^"]+)"\s*$')
 INCLUDES_END_RE = re.compile(r"^\s*}\s*$")
+FACETS = ("intent", "schema", "flow", "contract", "persona", "view", "event", "mapping")
 
 
 def fail(msg: str) -> None:
@@ -37,14 +38,64 @@ def parse_header(path: Path) -> tuple[str, str, str]:
     return m.group(1), m.group(2), m.group(3)
 
 
-def validate_entry_file(path: Path, expected_feature: str, expected_version: str) -> None:
+def derive_identity_from_relpath(rel_path: Path) -> tuple[str, str]:
+    if rel_path.suffix != ".intent":
+        fail(f"{rel_path}: source path must end with .intent")
+
+    if len(rel_path.parts) == 1:
+        stem_parts = rel_path.name[:-len(".intent")].split(".")
+        if stem_parts[-1] in FACETS:
+            if len(stem_parts) < 2:
+                fail(f"{rel_path}: flat source filename must be <feature>.<facet>.intent")
+            feature = ".".join(stem_parts[:-1])
+            facet = stem_parts[-1]
+        else:
+            feature = ".".join(stem_parts)
+            facet = "intent"
+    else:
+        feature = ".".join(rel_path.parts[:-1])
+        facet = rel_path.stem
+
+    if not FEATURE_RE.match(feature):
+        fail(f"{rel_path}: derived feature '{feature}' is invalid")
+    if facet not in FACETS:
+        fail(f"{rel_path}: derived facet '{facet}' is invalid")
+    return feature, facet
+
+
+def validate_source_file(
+    path: Path,
+    *,
+    package_root: Path,
+    expected_feature: str | None = None,
+    expected_version: str | None = None,
+) -> tuple[str, str, str]:
     feature, facet, version = parse_header(path)
+    rel_path = path.relative_to(package_root)
+    path_feature, path_facet = derive_identity_from_relpath(rel_path)
+
+    if path_feature != feature:
+        fail(f"{path}: path-derived feature '{path_feature}' does not match header feature '{feature}'")
+    if path_facet != facet:
+        fail(f"{path}: path-derived facet '{path_facet}' does not match header facet '{facet}'")
+    if expected_feature is not None and feature != expected_feature:
+        fail(f"{path}: header feature '{feature}' does not match package name '{expected_feature}'")
+    if expected_version is not None and version != expected_version:
+        fail(f"{path}: header version '{version}' does not match package version '{expected_version}'")
+    return feature, facet, version
+
+
+def validate_entry_file(path: Path, expected_feature: str, expected_version: str) -> None:
+    feature, facet, _version = validate_source_file(
+        path,
+        package_root=REGISTRY_PACKAGES / expected_feature,
+        expected_feature=expected_feature,
+        expected_version=expected_version,
+    )
     if feature != expected_feature:
         fail(f"{path}: header feature '{feature}' does not match package name '{expected_feature}'")
     if facet != "intent":
         fail(f"{path}: package entrypoint facet must be 'intent', got '{facet}'")
-    if version != expected_version:
-        fail(f"{path}: header version '{version}' does not match package version '{expected_version}'")
 
 
 def validate_includes(entry_path: Path, expected_feature: str, expected_version: str) -> None:
@@ -101,13 +152,14 @@ def validate_includes(entry_path: Path, expected_feature: str, expected_version:
         target = entry_path.parent / rel
         if not target.exists():
             fail(f"{entry_path}: includes missing file '{rel}'")
-        feature, facet, version = parse_header(target)
-        if feature != expected_feature:
-            fail(f"{entry_path}: include '{rel}' feature '{feature}' does not match '{expected_feature}'")
+        feature, facet, version = validate_source_file(
+            target,
+            package_root=REGISTRY_PACKAGES / expected_feature,
+            expected_feature=expected_feature,
+            expected_version=expected_version,
+        )
         if facet != include_facet:
             fail(f"{entry_path}: include '{rel}' facet '{facet}' does not match key '{include_facet}'")
-        if version != expected_version:
-            fail(f"{entry_path}: include '{rel}' version '{version}' does not match '{expected_version}'")
 
 
 def validate_no_stale_manifests() -> None:
@@ -168,8 +220,22 @@ def validate_index_and_packages() -> int:
         validate_entry_file(entry_path, expected_feature=name, expected_version=version)
         validate_includes(entry_path, expected_feature=name, expected_version=version)
         intent_entry_files = []
-        for source in sorted((REGISTRY_PACKAGES / name).glob("*.intent")):
-            _f, source_facet, _v = parse_header(source)
+        seen_identities: dict[tuple[str, str], Path] = {}
+        for source in sorted((REGISTRY_PACKAGES / name).rglob("*.intent")):
+            source_feature, source_facet, _source_version = validate_source_file(
+                source,
+                package_root=REGISTRY_PACKAGES / name,
+                expected_feature=name,
+                expected_version=version,
+            )
+            identity = (source_feature, source_facet)
+            if identity in seen_identities:
+                fail(
+                    f"{REGISTRY_PACKAGES / name}: duplicate source identity {source_feature}#{source_facet} "
+                    f"found in '{seen_identities[identity].relative_to(REGISTRY_PACKAGES / name)}' and "
+                    f"'{source.relative_to(REGISTRY_PACKAGES / name)}'"
+                )
+            seen_identities[identity] = source
             if source_facet == "intent":
                 intent_entry_files.append(source)
         if len(intent_entry_files) != 1:

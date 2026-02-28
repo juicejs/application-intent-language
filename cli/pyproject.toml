@@ -10,7 +10,7 @@ readme = "CLI.md"
 requires-python = ">=3.6"
 license = {text = "MIT"}
 authors = [
-    {name = "AIM Contributors"}
+    {name = "Juice d.o.o", email = "hello@juice.com.hr"}
 ]
 keywords = ["sinth", "aim", "intent", "package-manager", "ai", "specification", "synthesis"]
 classifiers = [

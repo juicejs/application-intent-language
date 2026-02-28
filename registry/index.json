@@ -14,7 +14,12 @@
     {
       "name": "nemicko.demo.todo",
       "version": "1.4",
-      "entry": "registry/packages/nemicko.demo.todo/todo.intent"
+      "entry": "registry/packages/nemicko.demo.todo/nemicko.demo.todo.intent"
+    },
+    {
+      "name": "terminal.countdown",
+      "version": "1.5",
+      "entry": "registry/packages/terminal.countdown/terminal.countdown.intent"
     }
   ]
 }

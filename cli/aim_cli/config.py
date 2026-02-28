@@ -2,6 +2,9 @@
 """
 Config management for AIM CLI
 Handles aim.config.json in project root
+
+Copyright (c) 2026 Juice d.o.o (https://juice.com.hr)
+Licensed under MIT License
 """
 
 import json

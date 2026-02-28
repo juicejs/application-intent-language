@@ -1,0 +1,18 @@
+AIM: terminal.countdown#contract@1.5
+
+CONTRACT StartCountdown {
+  SUMMARY: "Starts a countdown run and guarantees a completion event when it reaches zero."
+  INPUT {
+    durationSeconds: integer required min(1) max(3600)
+  }
+  EXPECTS {
+    - "durationSeconds must be greater than zero"
+  }
+  ENSURES {
+    - PERSISTS "CountdownRun with remainingSeconds initialized to durationSeconds"
+    - EMITS "CountdownFinished when the run reaches status='finished'"
+  }
+  RETURNS {
+    - "The created CountdownRun"
+  }
+}
