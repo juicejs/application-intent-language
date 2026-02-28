@@ -1,0 +1,2 @@
+[console_scripts]
+aim = aim_cli.cli:main

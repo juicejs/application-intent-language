@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sinth"
+version = "0.1.0"
+description = "Sinth — the CLI for AIM. Synthesize intent into reality."
+readme = "CLI.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+    {name = "AIM Contributors"}
+]
+keywords = ["sinth", "aim", "intent", "package-manager", "ai", "specification", "synthesis"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://intentmodel.dev"
+Documentation = "https://intentmodel.dev/spec/"
+Repository = "https://github.com/juicejs/application-intent-language"
+Registry = "https://intentmodel.dev/registry/"
+
+[project.scripts]
+sinth = "aim_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aim_cli*"]

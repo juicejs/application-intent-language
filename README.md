@@ -29,6 +29,38 @@ This enables progressive detail:
 - partial facets for medium fidelity
 - full facets for maximum precision
 
+## Sinth — the CLI for AIM
+
+**Synthesize intent into reality.**
+
+AIM includes Sinth, a Python CLI tool for fetching, managing, and synthesizing packages:
+
+```bash
+pip install sinth
+
+# Interactive menu (recommended for new users)
+sinth
+
+# Or use direct commands
+sinth fetch weather
+
+# Configure your stack
+sinth config set stack.frontend "React"
+sinth config set stack.backend "Node.js"
+
+# Generate synthesis prompts
+sinth synth weather
+```
+
+Sinth automatically:
+- Fetches packages from the registry
+- Validates intent files
+- Generates formatted prompts for AI assistants
+- Copies prompts to clipboard for easy pasting
+- Provides guided configuration wizards
+
+See [cli/CLI.md](./cli/CLI.md) for full documentation.
+
 ## Read The Specification
 
 The full protocol is documented in:
