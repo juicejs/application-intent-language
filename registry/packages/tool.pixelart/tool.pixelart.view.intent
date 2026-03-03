@@ -1,0 +1,32 @@
+AIM: tool.pixelart#view@1.5
+
+VIEW CanvasEditor {
+  SUMMARY: "The primary drawing surface for creating and editing pixel art."
+  DISPLAY {
+    - "The pixel grid rendered as a table of colored cells at the selected gridSize"
+    - "The active color swatch and hex color input"
+    - "A tool selector showing pencil, fill, and eraser options"
+    - "A preset color palette row"
+    - "The canvas title and current grid size"
+  }
+  ACTIONS {
+    - "Clicking or dragging a cell with pencil tool -> CALL PaintCells"
+    - "Clicking a cell with fill tool -> CALL FillRegion"
+    - "Clicking a cell with eraser tool -> CALL PaintCells with transparent color"
+    - "Clicking 'Clear' -> CALL ClearCanvas"
+    - "Clicking 'Export PNG' -> CALL ExportCanvas"
+  }
+}
+
+VIEW Gallery {
+  SUMMARY: "A grid of saved canvases for selection and creation."
+  DISPLAY {
+    - "Thumbnail previews of all saved canvases ordered by last modified"
+    - "Canvas title and last modified date beneath each thumbnail"
+  }
+  ACTIONS {
+    - "Clicking a thumbnail -> CALL GetCanvas"
+    - "Clicking 'New Canvas' -> CALL CreateCanvas"
+    - "Refreshing the list -> CALL ListCanvases"
+  }
+}
