@@ -20,6 +20,11 @@
       "name": "terminal.countdown",
       "version": "1.5",
       "entry": "registry/packages/terminal.countdown/terminal.countdown.intent"
+    },
+    {
+      "name": "tool.pixelart",
+      "version": "1.5",
+      "entry": "registry/packages/tool.pixelart/tool.pixelart.intent"
     }
   ]
 }

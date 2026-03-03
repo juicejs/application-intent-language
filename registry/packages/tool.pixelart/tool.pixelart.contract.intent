@@ -1,0 +1,117 @@
+AIM: tool.pixelart#contract@1.5
+
+CONTRACT CreateCanvas {
+  SUMMARY: "Creates a new empty pixel art canvas."
+  INPUT {
+    title: string optional
+    gridSize: enum(16, 32) optional
+  }
+  EXPECTS {
+    - "A new canvas can be allocated"
+  }
+  ENSURES {
+    - PERSISTS "Canvas with all pixels transparent and the requested gridSize"
+  }
+  RETURNS {
+    - "The new Canvas"
+  }
+}
+
+CONTRACT PaintCells {
+  SUMMARY: "Applies one or more cell color updates to the canvas."
+  INPUT {
+    canvasId: uuid required
+    cells: json required
+  }
+  EXPECTS {
+    - "Canvas must exist"
+    - "Every cell coordinate must be within the canvas grid bounds"
+  }
+  ENSURES {
+    - UPDATES "Canvas.pixels for each supplied cell coordinate"
+    - UPDATES "Canvas.updatedAt"
+  }
+  RETURNS {
+    - "The updated Canvas"
+  }
+}
+
+CONTRACT FillRegion {
+  SUMMARY: "Flood-fills the region of same-colored cells connected to the target cell."
+  INPUT {
+    canvasId: uuid required
+    x: integer required
+    y: integer required
+    color: string required
+  }
+  EXPECTS {
+    - "Canvas must exist"
+    - "Coordinates (x, y) must be within the canvas grid bounds"
+  }
+  ENSURES {
+    - UPDATES "Canvas.pixels for all cells reached by the FloodFill FLOW"
+    - UPDATES "Canvas.updatedAt"
+  }
+  RETURNS {
+    - "The updated Canvas"
+  }
+}
+
+CONTRACT ClearCanvas {
+  SUMMARY: "Resets all pixels on the canvas to transparent."
+  INPUT {
+    canvasId: uuid required
+  }
+  EXPECTS {
+    - "Canvas must exist"
+  }
+  ENSURES {
+    - UPDATES "Canvas.pixels to empty"
+    - UPDATES "Canvas.updatedAt"
+  }
+  RETURNS {
+    - "The cleared Canvas"
+  }
+}
+
+CONTRACT ExportCanvas {
+  SUMMARY: "Renders the canvas pixel data to a PNG data URL."
+  INPUT {
+    canvasId: uuid required
+  }
+  EXPECTS {
+    - "Canvas must exist"
+  }
+  ENSURES {
+    - CALLS "Canvas render pipeline using Canvas.pixels and Canvas.gridSize"
+  }
+  RETURNS {
+    - "A PNG data URL string"
+  }
+}
+
+CONTRACT GetCanvas {
+  SUMMARY: "Loads a saved canvas by ID."
+  INPUT {
+    canvasId: uuid required
+  }
+  ENSURES {
+    - CALLS "Canvas read model"
+  }
+  RETURNS {
+    - "The Canvas"
+  }
+}
+
+CONTRACT ListCanvases {
+  SUMMARY: "Returns all saved canvases ordered by last modified."
+  INPUT {
+    - none
+  }
+  ENSURES {
+    - CALLS "Canvas list read model ordered by updatedAt descending"
+  }
+  RETURNS {
+    - "Ordered Canvas list"
+  }
+}

@@ -1,0 +1,65 @@
+¢AIM: tool.pixelart#intent@1.5
+
+INTENT PixelArtCanvas {
+  SUMMARY: "A grid-based drawing app where users paint pixel art, pick colors, and export their creation as a PNG image."
+  REQUIREMENTS {
+    - "Canvas grid is either 16×16 or 32×32 cells, selectable at creation."
+    - "Each cell can be painted with the active color using a pencil tool."
+    - "A fill tool flood-fills connected same-colored cells with the active color."
+    - "An eraser tool clears individual cells to transparent."
+    - "Users can pick any color from a preset palette or a custom hex input."
+    - "The canvas state is persisted and can be reloaded from the gallery."
+    - "Finished canvases can be exported as a PNG image file."
+  }
+
+  TESTS {
+    - "Creating a canvas yields an empty grid with all cells transparent."
+    - "Painting a cell updates the pixel at the given coordinate."
+    - "Flood fill changes all connected same-colored cells and no others."
+    - "Exporting a canvas returns a valid PNG data URL."
+  }
+
+  SCHEMA Canvas {
+    SUMMARY: "Stores the persistent state of one pixel art canvas."
+    ATTRIBUTES {
+      id: uuid required generated immutable
+      title: string required default("Untitled")
+      gridSize: enum(16, 32) required default(16)
+      pixels: json required
+      createdAt: timestamp generated immutable
+      updatedAt: timestamp generated
+    }
+  }
+
+  FLOW FloodFill {
+    SUMMARY: "Flood-fills a connected region of same-colored cells with the active color."
+    TRIGGER {
+      - "Invoked by the FillRegion CONTRACT when the fill tool is active"
+    }
+    STEPS {
+      - "EVALUATE the target cell's current color from Canvas.pixels"
+      - "BRANCH with no-op when the target color already equals the fill color"
+      - "ITERATE over connected cells sharing the target color using BFS from the origin cell"
+      - "TRANSITION each discovered cell to the fill color in Canvas.pixels"
+    }
+    ON_ERROR {
+      - "RETHROW runtime error to the caller"
+    }
+  }
+
+  PERSONA Artist {
+    SUMMARY: "A user creating and managing pixel art canvases."
+    ROLE {
+      - "user:artist"
+    }
+    ACCESS {
+      - VIEW CanvasEditor
+      - VIEW Gallery
+    }
+  }
+}
+
+INCLUDES {
+  contract: "tool.pixelart.contract.intent"
+  view: "tool.pixelart.view.intent"
+}
