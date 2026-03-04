@@ -1,0 +1,353 @@
+AIM: pyenv-cli#intent@1.4
+
+INTENT PyEnvCLI {
+  SUMMARY: "A CLI tool for Python virtual environment generation with full support for AI-assisted development, offering interactive prompts to configure Python versions, package dependencies, Dockerfiles, and integration with multiple AI CLI tools."
+  REQUIREMENTS {
+    - "User can interactively select Python version (3.8, 3.9, 3.10, 3.11, 3.12, 3.13) for virtual environment."
+    - "User can generate and manage requirements.txt with package specifications."
+    - "User can generate Dockerfile optimized for the selected Python version and dependencies."
+    - "User can choose and prompt multiple AI CLI tools (Claude Code, GitHub Copilot CLI, ChatGPT CLI, Cursor AI) directly from the interface."
+    - "The tool provides guided workflows for creating, activating, and managing Python virtual environments."
+    - "All generated files (requirements.txt, Dockerfile, .python-version) are saved to the project directory."
+    - "The tool validates Python version availability on the system before environment creation."
+    - "Interactive prompts guide users through each configuration step with clear options and defaults."
+    - "AI tool integration allows seamless handoff of context for environment setup assistance."
+  }
+
+  SCHEMA VirtualEnvConfig {
+    SUMMARY: "Represents the configuration for a Python virtual environment to be created."
+    REQUIREMENTS {
+      - "Python version must be a valid, supported version string."
+      - "Environment name must be filesystem-safe and unique within the project."
+      - "Configuration is persisted for reproducibility."
+    }
+
+    ATTRIBUTES {
+      id: uuid required generated immutable
+      envName: string required min(1) max(100) pattern("^[a-zA-Z0-9_-]+$")
+      pythonVersion: string required pattern("^3\\.(8|9|10|11|12|13)(\\.\\d+)?$")
+      projectPath: string required
+      includeDockerfile: boolean required default(false)
+      includeRequirements: boolean required default(true)
+      aiToolPreference: string optional enum("claude-code", "copilot-cli", "chatgpt-cli", "cursor-ai", "none")
+      createdAt: datetime required generated immutable
+      updatedAt: datetime required generated
+    }
+  }
+
+  SCHEMA PackageRequirement {
+    SUMMARY: "Represents a single Python package dependency with version constraints."
+    REQUIREMENTS {
+      - "Package name must be a valid PyPI package identifier."
+      - "Version specifier follows PEP 440 standards."
+    }
+
+    ATTRIBUTES {
+      id: uuid required generated immutable
+      envConfigId: uuid required reference(VirtualEnvConfig.id)
+      packageName: string required min(1) max(100)
+      versionSpec: string optional pattern("^([=<>!~]=?)?[0-9]+(\\.[0-9]+)*(\\.[*])?$")
+      description: string optional max(500)
+      addedAt: datetime required generated immutable
+    }
+  }
+
+  SCHEMA DockerConfiguration {
+    SUMMARY: "Represents Docker configuration for the Python environment."
+    REQUIREMENTS {
+      - "Base image corresponds to the selected Python version."
+      - "Dockerfile includes all requirements and environment setup."
+    }
+
+    ATTRIBUTES {
+      id: uuid required generated immutable
+      envConfigId: uuid required reference(VirtualEnvConfig.id)
+      baseImage: string required default("python:3.11-slim")
+      workdir: string required default("/app")
+      exposedPorts: array[integer] optional
+      additionalCommands: array[string] optional
+      generatedContent: text required
+      createdAt: datetime required generated immutable
+    }
+  }
+
+  SCHEMA AIToolSession {
+    SUMMARY: "Represents an AI tool interaction session for environment assistance."
+    REQUIREMENTS {
+      - "Session tracks which AI tool was invoked and context provided."
+      - "Session persists prompts and tool selection for audit trail."
+    }
+
+    ATTRIBUTES {
+      id: uuid required generated immutable
+      envConfigId: uuid required reference(VirtualEnvConfig.id)
+      toolName: string required enum("claude-code", "copilot-cli", "chatgpt-cli", "cursor-ai")
+      contextPrompt: text required
+      startedAt: datetime required generated immutable
+      status: string required enum("initiated", "active", "completed", "failed") default("initiated")
+    }
+  }
+
+  FLOW ValidatePythonVersion {
+    SUMMARY: "Validates that the requested Python version is available on the system."
+    REQUIREMENTS {
+      - "Check system for Python executable matching the requested version."
+      - "Return clear error if version not found with installation suggestions."
+    }
+
+    TRIGGER: Contract.CreateVirtualEnv
+    STEPS {
+      - "Parse requested Python version from input."
+      - "Check system PATH for python3.x executable."
+      - "REQUIRES python executable exists and matches version."
+      - "Store validated executable path."
+    }
+  }
+
+  FLOW GenerateRequirementsList {
+    SUMMARY: "Creates requirements.txt from user-specified packages."
+    REQUIREMENTS {
+      - "User can add packages interactively one by one."
+      - "User can specify version constraints or use latest."
+      - "Generated file follows PEP 508 format."
+    }
+
+    TRIGGER: Contract.ConfigurePackages
+    REQUIRES {
+      - "Schema.VirtualEnvConfig is persisted"
+    }
+    STEPS {
+      - "Prompt user for package name and optional version."
+      - "PERSIST Schema.PackageRequirement for each package."
+      - "Generate requirements.txt content from all PackageRequirement entries."
+      - "Write requirements.txt to project path."
+    }
+  }
+
+  FLOW GenerateDockerfile {
+    SUMMARY: "Creates an optimized Dockerfile for the Python environment."
+    REQUIREMENTS {
+      - "Dockerfile uses official Python base image matching selected version."
+      - "Includes COPY and RUN instructions for requirements.txt."
+      - "Optimizes layer caching for dependencies."
+    }
+
+    TRIGGER: Contract.ConfigureDocker
+    REQUIRES {
+      - "Schema.VirtualEnvConfig.includeDockerfile is true"
+      - "Schema.VirtualEnvConfig.pythonVersion is set"
+    }
+    STEPS {
+      - "Select base image from Docker Hub matching Python version."
+      - "Generate multi-stage Dockerfile with dependency layer."
+      - "PERSIST Schema.DockerConfiguration."
+      - "Write Dockerfile to project path."
+    }
+  }
+
+  FLOW CreateVirtualEnvironment {
+    SUMMARY: "Creates and activates a Python virtual environment with configured settings."
+    REQUIREMENTS {
+      - "Virtual environment is created using system Python matching version."
+      - "Activation script path is provided to user."
+      - "Requirements are installed if specified."
+    }
+
+    TRIGGER: Contract.CreateVirtualEnv
+    REQUIRES {
+      - "Schema.VirtualEnvConfig is valid"
+      - "Flow.ValidatePythonVersion succeeded"
+    }
+    STEPS {
+      - "Execute: python<version> -m venv <envName>."
+      - "REQUIRES virtual environment directory exists."
+      - "IF includeRequirements: pip install -r requirements.txt."
+      - "Generate activation instructions for user's shell."
+      - "RETURN activation path and next steps."
+    }
+  }
+
+  FLOW LaunchAIAssistant {
+    SUMMARY: "Launches selected AI CLI tool with context about the environment setup."
+    REQUIREMENTS {
+      - "AI tool command is validated before execution."
+      - "Context prompt includes Python version, packages, and project structure."
+      - "User is notified about AI tool startup."
+    }
+
+    TRIGGER: Contract.PromptAITool
+    REQUIRES {
+      - "Schema.VirtualEnvConfig.aiToolPreference is set"
+    }
+    STEPS {
+      - "Build context prompt with env details and user request."
+      - "PERSIST Schema.AIToolSession."
+      - "Detect AI tool availability on system."
+      - "Launch AI tool CLI with prepared context."
+      - "RETURN session ID and tool status."
+    }
+  }
+
+  CONTRACT CreateVirtualEnv {
+    SUMMARY: "Main contract for creating a Python virtual environment with all configurations."
+    REQUIREMENTS {
+      - "Guides user through Python version selection, environment naming, and configuration."
+      - "Validates all inputs before creating environment."
+      - "Returns success status with activation instructions."
+    }
+
+    INPUT {
+      - envName
+      - pythonVersion
+      - projectPath
+      - includeDockerfile
+      - includeRequirements
+    }
+    LOGIC {
+      - "EXECUTE Flow.ValidatePythonVersion"
+      - "PERSIST Schema.VirtualEnvConfig"
+      - "IF includeRequirements: EXECUTE Flow.GenerateRequirementsList"
+      - "IF includeDockerfile: EXECUTE Flow.GenerateDockerfile"
+      - "EXECUTE Flow.CreateVirtualEnvironment"
+      - "RETURN activation instructions and file paths"
+    }
+  }
+
+  CONTRACT ConfigurePackages {
+    SUMMARY: "Configures Python package dependencies for the environment."
+    REQUIREMENTS {
+      - "User can add, remove, and update package specifications."
+      - "Changes are reflected in requirements.txt."
+    }
+
+    INPUT {
+      - envConfigId
+      - packages: array[{name: string, version: string}]
+    }
+    LOGIC {
+      - "VALIDATE envConfigId exists"
+      - "EXECUTE Flow.GenerateRequirementsList"
+      - "RETURN requirements.txt path and content preview"
+    }
+  }
+
+  CONTRACT ConfigureDocker {
+    SUMMARY: "Configures and generates Dockerfile for the Python environment."
+    REQUIREMENTS {
+      - "Dockerfile is optimized for the specific Python version."
+      - "Supports custom ports and additional build commands."
+    }
+
+    INPUT {
+      - envConfigId
+      - exposedPorts
+      - additionalCommands
+    }
+    LOGIC {
+      - "VALIDATE envConfigId exists"
+      - "EXECUTE Flow.GenerateDockerfile"
+      - "RETURN Dockerfile path and build instructions"
+    }
+  }
+
+  CONTRACT PromptAITool {
+    SUMMARY: "Launches an AI CLI tool with context about the Python environment."
+    REQUIREMENTS {
+      - "User can select from available AI tools."
+      - "Context is automatically prepared from environment configuration."
+      - "Tool is launched in a way that allows continuation of work."
+    }
+
+    INPUT {
+      - envConfigId
+      - aiToolName
+      - customPrompt
+    }
+    LOGIC {
+      - "VALIDATE aiToolName is supported"
+      - "LOAD Schema.VirtualEnvConfig by envConfigId"
+      - "EXECUTE Flow.LaunchAIAssistant"
+      - "RETURN session info and tool status"
+    }
+  }
+
+  PERSONA Developer {
+    SUMMARY: "Python developer creating virtual environments for application development."
+    REQUIREMENTS {
+      - "Can configure all aspects of Python environment setup."
+      - "Can invoke AI assistance at any stage of configuration."
+      - "Receives clear feedback and file generation status."
+    }
+
+    VIEW EnvironmentSetup {
+      SUMMARY: "Interactive CLI wizard for Python virtual environment configuration."
+      REQUIREMENTS {
+        - "Step-by-step prompts guide through version, packages, Docker, and AI tool selection."
+        - "Shows validation errors and warnings inline."
+        - "Displays generated file paths and activation instructions on success."
+      }
+
+      DISPLAY {
+        - "form.create: [envName, pythonVersion, projectPath]"
+        - "envName as primary"
+        - "pythonVersion as dropdown"
+        - "includeDockerfile as checkbox"
+        - "includeRequirements as checkbox"
+        - "aiToolPreference as dropdown"
+        - "createdAt as relative-date"
+      }
+      ACTIONS {
+        - "Create Environment -> Contract.CreateVirtualEnv"
+        - "Configure Packages -> Contract.ConfigurePackages"
+        - "Setup Docker -> Contract.ConfigureDocker"
+        - "Get AI Help -> Contract.PromptAITool"
+      }
+    }
+
+    VIEW PackageManager {
+      SUMMARY: "Interface for managing Python package dependencies."
+      REQUIREMENTS {
+        - "Lists all added packages with versions."
+        - "Allows adding, removing, and updating packages."
+      }
+
+      DISPLAY {
+        - "list: PackageRequirement"
+        - "packageName as primary"
+        - "versionSpec as badge"
+        - "description as secondary"
+        - "addedAt as relative-date"
+      }
+      ACTIONS {
+        - "Add Package -> Contract.ConfigurePackages"
+        - "Remove Package -> Contract.ConfigurePackages"
+        - "Update Version -> Contract.ConfigurePackages"
+        - "Generate requirements.txt -> Flow.GenerateRequirementsList"
+      }
+    }
+
+    VIEW AIToolLauncher {
+      SUMMARY: "Interface for selecting and launching AI CLI tools with environment context."
+      REQUIREMENTS {
+        - "Shows available AI tools with installation status."
+        - "Allows custom prompt input for AI assistance."
+        - "Displays active AI sessions."
+      }
+
+      DISPLAY {
+        - "list: Available AI Tools with status indicators"
+        - "toolName as primary"
+        - "status as badge"
+        - "contextPrompt preview"
+        - "list: AIToolSession"
+        - "startedAt as relative-date"
+      }
+      ACTIONS {
+        - "Launch Claude Code -> Contract.PromptAITool"
+        - "Launch Copilot CLI -> Contract.PromptAITool"
+        - "Launch ChatGPT CLI -> Contract.PromptAITool"
+        - "Launch Cursor AI -> Contract.PromptAITool"
+      }
+    }
+  }
+}
