@@ -1,6 +1,6 @@
 # PyEnvCLI
 
-> **A CLI tool for Python virtual environment generation with AI-assisted development**
+> **A CLI tool for Python virtual environment generation**
 
 Synthesized from [AIM v1.4 specification](https://intentmodel.dev) - `pyenv-cli.intent`
 
@@ -16,7 +16,6 @@ PyEnvCLI is an interactive command-line tool that streamlines Python virtual env
 - 🐍 **Multiple Python versions** (3.8 - 3.13)
 - 📦 **Package dependency management** (requirements.txt)
 - 🐳 **Docker configuration** (optimized Dockerfiles)
-- 🤖 **AI CLI tool integration** (Claude Code, GitHub Copilot, ChatGPT, Cursor)
 - 🖥️ **Modern Terminal UI** with keyboard shortcuts and mouse support
 
 ## Features
@@ -37,11 +36,6 @@ PyEnvCLI is an interactive command-line tool that streamlines Python virtual env
 - Multi-stage Dockerfile generation
 - Optimized layer caching for dependencies
 - Configurable ports and custom commands
-
-✅ **AI-Assisted Workflows**
-- Launch AI tools with environment context
-- Session tracking and audit trail
-- Support for multiple AI CLI tools
 
 ## Installation
 
@@ -124,16 +118,6 @@ pyenv-cli docker <config-id> --port 8000 --port 5432
 pyenv-cli docker <config-id> --command "RUN apt-get update"
 ```
 
-### 4. Launch AI Assistant
-
-```bash
-# Interactive tool selection
-pyenv-cli ai <config-id>
-
-# Or specify tool directly
-pyenv-cli ai <config-id> --tool claude-code --prompt "Help optimize my setup"
-```
-
 ### 5. List Environments
 
 ```bash
@@ -151,7 +135,6 @@ Create a new Python virtual environment.
 - `-d, --path TEXT` - Project directory (default: current)
 - `--docker/--no-docker` - Generate Dockerfile
 - `--requirements/--no-requirements` - Generate requirements.txt (default: yes)
-- `-a, --ai-tool CHOICE` - AI tool preference
 
 ### `packages <config-id>`
 Manage package dependencies.
@@ -166,13 +149,6 @@ Generate and configure Dockerfile.
 - `-p, --port INTEGER` - Expose port (can be used multiple times)
 - `-c, --command TEXT` - Additional Docker command
 
-### `ai <config-id>`
-Launch AI CLI tool with environment context.
-
-**Options:**
-- `-t, --tool CHOICE` - AI tool (claude-code, copilot-cli, chatgpt-cli, cursor-ai)
-- `-p, --prompt TEXT` - Custom prompt
-
 ### `list`
 List all configured virtual environments.
 
@@ -184,20 +160,17 @@ PyEnvCLI is synthesized from the [AIM v1.4 specification](https://intentmodel.de
 - `VirtualEnvConfig` - Environment configuration with validation
 - `PackageRequirement` - PEP 440 compliant package specs
 - `DockerConfiguration` - Docker setup with generated content
-- `AIToolSession` - AI interaction audit trail
 
 ### FLOW Layer (Business Logic)
 - `ValidatePythonVersion` - System Python availability checks
 - `GenerateRequirementsList` - requirements.txt generation
 - `GenerateDockerfile` - Optimized Dockerfile creation
 - `CreateVirtualEnvironment` - venv setup and activation
-- `LaunchAIAssistant` - AI tool integration
 
 ### CONTRACT Layer (Application Boundary)
 - `CreateVirtualEnv` - Main environment creation workflow
 - `ConfigurePackages` - Dependency management
 - `ConfigureDocker` - Docker configuration
-- `PromptAITool` - AI assistant launcher
 
 ### VIEW Layer (CLI Interface)
 - Interactive prompts using [Click](https://click.palletsprojects.com/) + [Rich](https://rich.readthedocs.io/)
@@ -214,7 +187,6 @@ PyEnvCLI uses local JSON file storage (no database required):
 ├── configs.json       # VirtualEnvConfig records
 ├── packages.json      # PackageRequirement records
 ├── docker.json        # DockerConfiguration records
-└── ai_sessions.json   # AIToolSession records
 ```
 
 ## Interfaces
@@ -236,21 +208,6 @@ PyEnvCLI uses local JSON file storage (no database required):
 - Python 3.8+
 - System Python versions must be installed separately
 - Optional: Docker (for Dockerfile execution)
-- Optional: AI CLI tools (claude, github-copilot-cli, chatgpt, cursor)
-
-## AI Tool Integration
-
-PyEnvCLI prepares context for AI assistants including:
-- Environment name and Python version
-- Project path and structure
-- Package dependencies
-- Docker configuration status
-
-Supported AI CLI tools:
-- **Claude Code** - `claude` command
-- **GitHub Copilot CLI** - `github-copilot-cli` command
-- **ChatGPT CLI** - `chatgpt` command
-- **Cursor AI** - `cursor` command
 
 ## Development
 
