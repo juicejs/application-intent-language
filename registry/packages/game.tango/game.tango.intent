@@ -3,34 +3,71 @@ AIM: game.tango#intent@1.5
 INTENT TangoGame {
   SUMMARY: "A logic puzzle game where players fill a grid with two symbols, ensuring equal distribution and no more than two adjacent, with special constraint cells."
   REQUIREMENTS {
-    - "Game board is a square grid (6x6, 8x8, or 10x10) with cells to fill."
-    - "Players fill each cell with one of two symbols (e.g., 🫐 blueberry or 🍋 lemon, or ⚫/⚪, or 0/1)."
-    - "Each row must contain an equal number of both symbols."
-    - "Each column must contain an equal number of both symbols."
+    - "Game board is a fixed 6x6 grid with cells to fill."
+    - "Players fill each cell with one of two symbols (🫐 blueberry or 🍋 lemon)."
+    - "Each row must contain an equal number of both symbols (3 of each)."
+    - "Each column must contain an equal number of both symbols (3 of each)."
     - "No more than two of the same symbol can be adjacent horizontally or vertically."
     - "Some cells have constraint symbols: = (adjacent cells must be same) or × (adjacent cells must be opposite)."
+    - "Constraint symbols are displayed as small badges overlaid on cell borders."
+    - "Cells are connected with no gaps, forming a continuous grid."
     - "Clicking an empty cell cycles through: first symbol → second symbol → empty."
-    - "Invalid placements are highlighted in red to guide the player."
+    - "Players can toggle color hints on/off for increased difficulty."
+    - "When color hints are ON (default): violations are highlighted in red to guide the player."
+    - "When color hints are OFF: no visual error highlighting is shown (hard mode)."
+    - "When color hints ON and three or more same symbols are adjacent, all violating cells are highlighted in red."
+    - "When color hints ON and a completed row (all 6 cells filled) has incorrect distribution (not 3 of each symbol), the entire row is highlighted in red."
+    - "When color hints ON and a completed column (all 6 cells filled) has incorrect distribution (not 3 of each symbol), the entire column is highlighted in red."
+    - "When color hints ON, prefilled cells (with indigo background) also turn red when part of a violating row/column."
+    - "Error highlighting takes priority over prefilled cell styling for clear violation visibility."
+    - "When color hints ON, invalid placements use red background with shake animation to guide the player."
+    - "Hint cells are always highlighted in green with ring border for visibility regardless of color hints setting."
+    - "Pre-filled cells use distinct indigo background color."
+    - "Cells have larger dimensions (80-96px) for better visibility and engagement."
+    - "Constraint symbols have colored backgrounds (emerald for =, violet for ×) as overlay badges."
     - "Puzzle has exactly one unique solution solvable through logic (no guessing)."
-    - "Game tracks time taken to complete each puzzle."
-    - "Players can clear cells, reset puzzle, check solution, or get hints."
-    - "Game generates unlimited random puzzles in endless mode with configurable difficulty."
+    - "Game tracks time taken to complete each puzzle with clock icon."
+    - "Players can reset puzzle or get hints."
+    - "Game controls displayed in styled panel positioned to the right of the board."
+    - "Focus mode available to darken everything except the game board for distraction-free play."
+    - "Focus mode can be toggled on/off with a button in controls."
+    - "When focus mode is active, background darkens and board is highlighted."
+    - "Color hints can be toggled on/off with a button in controls for increased difficulty."
+    - "Color hints setting persists in localStorage across sessions."
+    - "Color hints toggle shows current state (ON/OFF) with visual indicator."
+    - "Statistics and Leaderboard are only accessible after completing a puzzle."
+    - "Navigation to Statistics/Leaderboard disabled during active gameplay to maintain focus."
+    - "New game dialog allows manual difficulty selection OR automatic difficulty option."
+    - "Automatic difficulty randomly selects between easy, medium, and hard."
+    - "Current difficulty is always visible during gameplay as a colored badge."
+    - "Game title and branding displayed at the top of the page above all content."
+    - "Game generates unlimited random puzzles with selected difficulty."
     - "Statistics track games played, completed, win rate, and average completion time."
     - "Leaderboard shows top 10 fastest completion times stored locally."
+    - "Completion modal appears when puzzle is solved, showing time and stats."
+    - "Completion modal is closable (X button) so player can view completed board."
+    - "Completion modal appears as slide-in card from right (no dark background overlay)."
+    - "Player can dismiss completion modal to review board and then start new game."
     - "All game data persists in browser localStorage (no backend required)."
     - "UI is modern, responsive, and mobile-friendly with smooth animations."
-    - "When working with datetime attributes from localStorage, always wrap them with new Date() before calling Date methods like .getTime() to handle deserialized data safely."
+    - "Welcome screen includes rules explanation and animated emoji."
+    - "Gradient backgrounds throughout for visual appeal."
   }
 
   TESTS {
-    - "Placing a third consecutive symbol horizontally is rejected."
-    - "Placing a third consecutive symbol vertically is rejected."
-    - "Placing a symbol that violates = constraint is highlighted as error."
-    - "Placing a symbol that violates × constraint is highlighted as error."
-    - "Completing a row/column with equal symbols of each type removes error highlights."
+    - "Placing a third consecutive symbol horizontally shows error when color hints ON."
+    - "Placing a third consecutive symbol vertically shows error when color hints ON."
+    - "Placing a symbol that violates = constraint is highlighted as error when color hints ON."
+    - "Placing a symbol that violates × constraint is highlighted as error when color hints ON."
+    - "Completing a row with 4 of one symbol and 2 of another highlights entire row in red when color hints ON."
+    - "Completing a column with 4 of one symbol and 2 of another highlights entire column in red when color hints ON."
+    - "When color hints OFF, no red highlighting appears for any violations."
+    - "Completing a row/column with equal symbols (3 of each) removes error highlights when color hints ON."
+    - "Toggling color hints OFF hides all error highlights immediately."
+    - "Toggling color hints ON shows error highlights for current violations immediately."
+    - "Color hints setting persists after page reload."
     - "Filling all cells correctly completes the puzzle and stops the timer."
     - "Reset restores the puzzle to initial state."
-    - "Check solution validates current board state."
     - "Completing a puzzle faster than leaderboard entries updates the leaderboard."
     - "Statistics correctly increment after each game completion."
   }
@@ -38,7 +75,7 @@ INTENT TangoGame {
   SCHEMA GameBoard {
     SUMMARY: "Represents the current state of a Tango puzzle board."
     REQUIREMENTS {
-      - "Board is a square grid (size × size) initialized with empty cells and constraints."
+      - "Board is a fixed 6×6 grid initialized with empty cells and constraints."
       - "Some cells may be pre-filled as part of the puzzle."
       - "Constraint symbols (=, ×) appear between cells to define relationships."
       - "Board state updates as players place or remove symbols."
@@ -46,11 +83,11 @@ INTENT TangoGame {
 
     ATTRIBUTES {
       id: uuid required generated immutable
-      size: integer required min(6) max(10) enum(6, 8, 10)
+      size: integer required fixed(6)
       grid: array<array<string>> required
       constraints: array<object> required
       prefilledCells: array<object> required
-      difficulty: enum(easy, medium, hard) required
+      difficulty: enum(easy, medium, hard, auto) required
       createdAt: datetime required generated immutable
     }
   }
@@ -94,7 +131,6 @@ INTENT TangoGame {
       - "Session begins when a new puzzle is generated."
       - "Timer starts when first placement is made."
       - "Session ends when puzzle is completed or abandoned."
-      - "When loading session from storage, datetime fields must be converted to Date objects using new Date() before calling Date methods."
     }
 
     ATTRIBUTES {
@@ -103,7 +139,7 @@ INTENT TangoGame {
       status: enum(active, completed, abandoned) required default(active)
       placements: array<uuid> required default([])
       hintsUsed: integer required default(0) min(0)
-      errorsFound: integer required default(0) min(0)
+      colorHintsEnabled: boolean required default(true)
       startTime: datetime required generated immutable
       endTime: datetime optional
       durationSeconds: integer optional min(0)
@@ -179,10 +215,14 @@ INTENT TangoGame {
   FLOW ValidatePlacement {
     SUMMARY: "Validates that a symbol placement follows all game rules."
     REQUIREMENTS {
+      - "Always validates placement logic internally regardless of color hints setting."
       - "Checks no-three-in-a-row rule horizontally and vertically."
-      - "Checks equal distribution in completed rows/columns."
+      - "Checks equal distribution in completed rows/columns (3 of each symbol)."
+      - "When a row is fully filled (6 cells), validates it has exactly 3 of each symbol."
+      - "When a column is fully filled (6 cells), validates it has exactly 3 of each symbol."
       - "Checks constraint satisfaction (=, ×)."
       - "Returns list of violated rules if any."
+      - "Visual error highlighting only displayed if colorHintsEnabled is true."
     }
 
     TRIGGER: Contract.PlaceSymbol
@@ -192,9 +232,13 @@ INTENT TangoGame {
     STEPS {
       - "Check if placement creates three consecutive same symbols horizontally."
       - "Check if placement creates three consecutive same symbols vertically."
-      - "Check if row/column has too many of one symbol."
+      - "Check if row has more than 3 of one symbol (too many placed)."
+      - "IF row is complete (all 6 cells filled): Check if row has exactly 3 of each symbol."
+      - "IF column is complete (all 6 cells filled): Check if column has exactly 3 of each symbol."
       - "Check constraint violations with adjacent cells."
       - "RETURN validation result with violated rules."
+      - "IF colorHintsEnabled = true: Apply red highlighting to violating cells."
+      - "IF colorHintsEnabled = false: Skip visual error highlighting."
     }
   }
 
@@ -307,16 +351,18 @@ INTENT TangoGame {
     SUMMARY: "Generates a new puzzle and starts a fresh game session."
     REQUIREMENTS {
       - "Any active session is marked as abandoned before starting new game."
-      - "Accepts difficulty and size parameters."
+      - "Accepts difficulty parameter (easy, medium, hard, or auto)."
+      - "Size is always fixed at 6x6."
+      - "If difficulty is 'auto', randomly selects from easy, medium, or hard."
     }
 
     INPUT {
       - difficulty
-      - size
     }
     LOGIC {
       - "IF active session exists: UPDATE status = abandoned"
-      - "EXECUTE Flow.GeneratePuzzle with difficulty and size"
+      - "IF difficulty = auto: RANDOMLY SELECT from (easy, medium, hard)"
+      - "EXECUTE Flow.GeneratePuzzle with selected difficulty and size=6"
       - "RETURN Schema.GameBoard and Schema.GameSession"
     }
   }
@@ -359,25 +405,6 @@ INTENT TangoGame {
       - "CLEAR Schema.GameSession.placements"
       - "RESET timer"
       - "RETURN reset Schema.GameBoard"
-    }
-  }
-
-  CONTRACT CheckSolution {
-    SUMMARY: "Validates the current board state against the solution."
-    REQUIREMENTS {
-      - "Highlights incorrect placements."
-      - "Increments error count."
-    }
-
-    INPUT {
-      - none
-    }
-    LOGIC {
-      - "FETCH puzzle solution"
-      - "COMPARE current board with solution"
-      - "HIGHLIGHT incorrect cells"
-      - "INCREMENT Schema.GameSession.errorsFound"
-      - "RETURN validation feedback"
     }
   }
 
@@ -431,61 +458,144 @@ INTENT TangoGame {
     }
   }
 
+  CONTRACT ToggleColorHints {
+    SUMMARY: "Toggles the color hints setting on or off."
+    REQUIREMENTS {
+      - "Toggles between showing and hiding error highlighting."
+      - "Setting persists in localStorage."
+      - "Immediately updates visual display."
+    }
+
+    INPUT {
+      - enabled (boolean)
+    }
+    LOGIC {
+      - "UPDATE Schema.GameSession.colorHintsEnabled"
+      - "PERSIST setting to localStorage"
+      - "IF enabled = false: REMOVE all error highlights from display"
+      - "IF enabled = true: APPLY error highlights for current violations"
+      - "RETURN updated color hints state"
+    }
+  }
+
   PERSONA Player {
     SUMMARY: "Any user who plays the Tango logic puzzle game."
     REQUIREMENTS {
-      - "Player can start new games with chosen difficulty and size."
+      - "Player can start new games with chosen difficulty."
       - "Player can place/remove symbols by clicking cells."
-      - "Player can use hints, reset, or check solution."
+      - "Player can use hints, reset, toggle color hints, and toggle focus mode."
       - "No authentication required, all data is local."
     }
 
     VIEW GameBoard {
       SUMMARY: "Main game interface showing the puzzle grid and controls."
       REQUIREMENTS {
+        - "Page layout has title at the very top, board in center-left, controls on right."
+        - "Game title displayed prominently at top of page before all other content."
         - "Grid displays cells with symbols, constraints, and validation feedback."
+        - "Cells are perfectly aligned vertically and horizontally in a grid."
+        - "Cells are connected with no gaps between them (borders touch)."
+        - "Cells have larger dimensions (80-96px) for better visibility and engagement."
+        - "Cells use white background with colored borders for clear visibility."
         - "Clicking cell cycles through: empty → symbol1 → symbol2 → empty."
-        - "Invalid cells highlight in red."
-        - "Constraint symbols (=, ×) visible between cells."
-        - "Timer displays during active game."
-        - "Mobile-responsive touch interactions."
+        - "When color hints ON and three+ same symbols adjacent, ALL violating cells highlight in red."
+        - "When color hints ON and completed row/column (all 6 cells filled) has wrong count (not 3 of each), ENTIRE row/column highlights in red."
+        - "When color hints ON, invalid cells use red background with shake animation."
+        - "When color hints OFF, no error highlighting appears (hard mode)."
+        - "Hint cells always highlight in green with ring border regardless of color hints setting."
+        - "Pre-filled cells use indigo background to distinguish from player cells."
+        - "Constraint symbols (=, ×) are overlaid on borders between cells."
+        - "Constraints displayed as small colored badges on cell borders."
+        - "Horizontal constraints appear on right border of left cell."
+        - "Vertical constraints appear on bottom border of top cell."
+        - "Grid container has gradient background with shadow for depth."
+        - "Grid is larger (80-96px cells) for immersive gameplay experience."
+        - "Timer displays during active game with clock icon."
+        - "Difficulty shown as colored badge."
+        - "Focus mode button available to toggle distraction-free mode."
+        - "Focus mode darkens background and highlights board with spotlight effect."
+        - "Controls panel positioned to the right of the game board."
+        - "Statistics and Leaderboard links only accessible after puzzle completion."
+        - "Statistics and Leaderboard buttons disabled during active gameplay."
+        - "Mobile-responsive touch interactions with hover effects."
+        - "Smooth animations using Framer Motion for cell interactions."
       }
 
       DISPLAY {
-        - "grid as interactive-board"
-        - "constraints as symbols-between-cells"
-        - "durationSeconds as timer"
-        - "hintsUsed as badge"
-        - "errorsFound as badge"
-        - "validation-feedback as highlighted-cells"
+        - "title at top of page with large prominent styling"
+        - "grid as connected-interactive-board with larger cell sizes (80-96px for 6x6)"
+        - "constraints as overlay-badges on cell borders"
+        - "durationSeconds as timer with icon"
+        - "hintsUsed as purple badge with lightbulb icon"
+        - "difficulty as prominent colored badge always visible"
+        - "colorHintsEnabled as toggle button in controls panel"
+        - "focus-mode-toggle as button in controls panel"
+        - "validation-feedback as highlighted-cells with animations (only when colorHintsEnabled)"
+        - "controls-panel positioned to right of board"
       }
       ACTIONS {
         - "New Game (with difficulty selector) -> Contract.StartNewGame"
         - "Click Cell -> Contract.PlaceSymbol"
-        - "Reset -> Contract.ResetPuzzle"
-        - "Check -> Contract.CheckSolution"
-        - "Hint -> Contract.GetHint"
+        - "Reset Puzzle -> Contract.ResetPuzzle"
+        - "Get Hint -> Contract.GetHint"
+        - "Toggle Color Hints -> Contract.ToggleColorHints"
+        - "Toggle Focus Mode -> Enable/disable dark background overlay"
         - "View Statistics -> VIEW Statistics"
         - "View Leaderboard -> VIEW Leaderboard"
       }
     }
 
     VIEW NewGameDialog {
-      SUMMARY: "Modal for selecting difficulty and grid size for a new game."
+      SUMMARY: "Modal for selecting difficulty for a new game."
       REQUIREMENTS {
-        - "Allows selection of difficulty: easy, medium, hard."
-        - "Allows selection of grid size: 6x6, 8x8, 10x10."
+        - "Allows selection of difficulty: easy, medium, hard, or auto."
+        - "Auto option randomly selects difficulty for each game."
+        - "Grid size is fixed at 6x6 (not selectable)."
         - "Shows description of each difficulty level."
+        - "Auto option displays 'Surprise Me!' with shuffle icon."
       }
 
       DISPLAY {
-        - "difficulty as button-group"
-        - "size as button-group"
+        - "difficulty as button-group with 4 options"
+        - "auto-option as special button with shuffle icon"
         - "difficulty-descriptions as info-text"
       }
       ACTIONS {
         - "Start -> Contract.StartNewGame"
         - "Cancel -> Close dialog"
+      }
+    }
+
+    VIEW CompletionModal {
+      SUMMARY: "Celebration card that appears when puzzle is successfully completed."
+      REQUIREMENTS {
+        - "Appears as slide-in card from right side (no dark overlay background)."
+        - "Positioned in top-right corner of screen."
+        - "Shows completion celebration with animated emoji."
+        - "Displays game stats: completion time, hints used."
+        - "Shows achievement badges for perfect games and leaderboard entries."
+        - "Has close button (X icon) in top-right corner."
+        - "Player can close modal to view and review completed board."
+        - "Has 'View Board' button to dismiss modal."
+        - "Has 'New Game' button to start next puzzle."
+        - "Compact design to not block entire game board."
+        - "Slide-in animation from right with smooth transition."
+      }
+
+      DISPLAY {
+        - "celebration-emoji as animated-icon"
+        - "durationSeconds as stat-card with clock icon"
+        - "hintsUsed as stat-card with lightbulb icon"
+        - "perfectGame as achievement-badge (if applicable)"
+        - "leaderboardEntry as achievement-badge (if applicable)"
+        - "close-button as X icon in corner"
+        - "view-board-button as secondary action"
+        - "new-game-button as primary action"
+      }
+      ACTIONS {
+        - "Close (X button) -> Dismiss modal, keep board visible"
+        - "View Board -> Dismiss modal, keep board visible"
+        - "New Game -> Open NewGameDialog"
       }
     }
 
