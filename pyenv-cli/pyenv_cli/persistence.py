@@ -59,6 +59,12 @@ class JSONStore:
         configs = self._load_json(self.configs_file)
         return [VirtualEnvConfig(**data) for data in configs.values()]
 
+    def delete_config(self, config_id: UUID):
+        """Remove a virtual environment configuration."""
+        configs = self._load_json(self.configs_file)
+        configs.pop(str(config_id), None)
+        self._save_json(self.configs_file, configs)
+
     # PackageRequirement operations
     def save_package(self, package: PackageRequirement):
         """Persist PackageRequirement."""

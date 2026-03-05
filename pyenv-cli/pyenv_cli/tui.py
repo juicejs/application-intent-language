@@ -38,6 +38,7 @@ class PythonInstallDialog(ModalScreen):
         super().__init__()
         self.python_version = python_version
         self.available_managers = PythonInstaller.detect_available_managers()
+        self.current_command = None
 
     def compose(self) -> ComposeResult:
         yield Container(
@@ -68,9 +69,11 @@ class PythonInstallDialog(ModalScreen):
 
         if manager == PackageManager.MANUAL:
             url = PythonInstaller.get_installation_url(self.python_version)
+            self.current_command = url
             command_widget.update(f"\n[yellow]Visit:[/yellow]\n{url}\n")
         else:
             cmd_string = " ".join(cmd_parts)
+            self.current_command = cmd_string
             command_widget.update(
                 f"\n[yellow]Command:[/yellow]\n"
                 f"[cyan]{cmd_string}[/cyan]\n\n"
@@ -82,30 +85,127 @@ class PythonInstallDialog(ModalScreen):
         if event.button.id == "btn_cancel":
             self.dismiss(None)
         elif event.button.id == "btn_copy":
-            manager_list = self.query_one("#manager_list", OptionList)
-            if manager_list.highlighted is not None:
-                self.app.bell()
+            if self.current_command:
+                try:
+                    # Try to copy to clipboard using pbcopy on macOS
+                    import subprocess
+                    subprocess.run(['pbcopy'], input=self.current_command.encode(), check=True)
+                    command_widget = self.query_one("#install_command", Static)
+                    command_widget.update(
+                        f"\n[yellow]Command:[/yellow]\n"
+                        f"[cyan]{self.current_command}[/cyan]\n\n"
+                        f"[green]✓ Copied to clipboard![/green]"
+                    )
+                    self.app.bell()
+                except Exception:
+                    # Fallback: just show the command
+                    command_widget = self.query_one("#install_command", Static)
+                    command_widget.update(
+                        f"\n[yellow]Command:[/yellow]\n"
+                        f"[cyan]{self.current_command}[/cyan]\n\n"
+                        f"[green]✓ Ready to copy (manually)![/green]"
+                    )
+                    self.app.bell()
+            else:
                 command_widget = self.query_one("#install_command", Static)
-                current_text = str(command_widget.renderable)
-                command_widget.update(current_text + "\n\n[green]✓ Ready to copy![/green]")
+                command_widget.update("[red]Please select a package manager first[/red]")
 
 
 class PackageSearchDialog(ModalScreen):
     """Modal dialog for searching packages."""
 
     COMMON_PACKAGES = [
+        # Web Frameworks
         ("flask", "Lightweight web framework"),
         ("django", "Full-featured web framework"),
         ("fastapi", "Modern async web framework"),
+        ("streamlit", "Web apps for data science"),
+        ("bottle", "Micro web framework"),
+        ("tornado", "Async web framework"),
+        ("aiohttp", "Async HTTP client/server"),
+        ("sanic", "Async web framework"),
+
+        # HTTP & API
         ("requests", "HTTP library"),
         ("httpx", "Next-gen HTTP client"),
+        ("urllib3", "HTTP client"),
+        ("beautifulsoup4", "HTML/XML parser"),
+        ("scrapy", "Web scraping framework"),
+        ("selenium", "Web browser automation"),
+
+        # Data Science & ML
         ("numpy", "Numerical computing"),
         ("pandas", "Data analysis"),
+        ("scipy", "Scientific computing"),
+        ("scikit-learn", "Machine learning"),
+        ("tensorflow", "Deep learning framework"),
+        ("pytorch", "Deep learning framework"),
+        ("keras", "Neural networks API"),
+        ("xgboost", "Gradient boosting"),
+        ("lightgbm", "Gradient boosting"),
+
+        # Visualization
         ("matplotlib", "Plotting library"),
+        ("seaborn", "Statistical visualization"),
+        ("plotly", "Interactive plots"),
+        ("bokeh", "Interactive visualization"),
+        ("altair", "Declarative visualization"),
+
+        # Testing
         ("pytest", "Testing framework"),
+        ("unittest", "Unit testing framework"),
+        ("nose2", "Testing framework"),
+        ("coverage", "Code coverage tool"),
+        ("mock", "Mocking library"),
+        ("tox", "Testing automation"),
+        ("hypothesis", "Property-based testing"),
+
+        # Database
         ("sqlalchemy", "SQL toolkit and ORM"),
+        ("psycopg2", "PostgreSQL adapter"),
+        ("pymongo", "MongoDB driver"),
+        ("redis", "Redis client"),
+        ("mysql-connector-python", "MySQL driver"),
+        ("alembic", "Database migrations"),
+
+        # Code Quality
         ("black", "Code formatter"),
         ("mypy", "Static type checker"),
+        ("pylint", "Code linter"),
+        ("flake8", "Style guide enforcer"),
+        ("isort", "Import sorter"),
+        ("autopep8", "Auto formatter"),
+        ("bandit", "Security linter"),
+        ("ruff", "Fast Python linter"),
+
+        # Utilities
+        ("click", "CLI creation kit"),
+        ("rich", "Terminal formatting"),
+        ("pydantic", "Data validation"),
+        ("python-dotenv", "Environment variables"),
+        ("loguru", "Logging library"),
+        ("tqdm", "Progress bars"),
+        ("pillow", "Image processing"),
+        ("openpyxl", "Excel files"),
+        ("pyyaml", "YAML parser"),
+        ("jinja2", "Template engine"),
+
+        # Async & Concurrency
+        ("asyncio", "Async I/O"),
+        ("celery", "Distributed task queue"),
+        ("gevent", "Coroutine networking"),
+
+        # DevOps & Cloud
+        ("boto3", "AWS SDK"),
+        ("docker", "Docker SDK"),
+        ("ansible", "Automation platform"),
+        ("paramiko", "SSH library"),
+
+        # API Development
+        ("graphene", "GraphQL framework"),
+        ("marshmallow", "Serialization"),
+        ("pyjwt", "JSON Web Tokens"),
+        ("python-jose", "JWT implementation"),
     ]
 
     def __init__(self):
@@ -122,7 +222,10 @@ class PackageSearchDialog(ModalScreen):
             ),
             Label("Version (optional):"),
             Input(placeholder="e.g., ==2.31.0, >=1.0.0", id="version_input"),
-            Static("", id="selected_display"),
+            ScrollableContainer(
+                Static("", id="selected_display"),
+                id="selected_container"
+            ),
             Horizontal(
                 Button("Add", variant="success", id="btn_add"),
                 Button("Done", variant="primary", id="btn_done"),
@@ -216,18 +319,30 @@ class WelcomeScreen(Screen):
         self.load_environments()
 
     def load_environments(self) -> None:
-        """Load envs."""
+        """Load envs, filtering out non-existent ones."""
+        from pathlib import Path
         table = self.query_one("#env_table", DataTable)
         table.clear()
         try:
+            configs_to_remove = []
             for cfg in sorted(self.store.list_configs(), key=lambda c: c.createdAt, reverse=True):
-                table.add_row(
-                    str(cfg.id)[:8],
-                    cfg.envName,
-                    cfg.pythonVersion,
-                    "✓" if cfg.includeDockerfile else "✗",
-                    cfg.createdAt.strftime("%Y-%m-%d %H:%M")
-                )
+                # Check if environment directory exists
+                env_path = Path(cfg.projectPath) / cfg.envName
+                if env_path.exists() and env_path.is_dir():
+                    table.add_row(
+                        str(cfg.id)[:8],
+                        cfg.envName,
+                        cfg.pythonVersion,
+                        "✓" if cfg.includeDockerfile else "✗",
+                        cfg.createdAt.strftime("%Y-%m-%d %H:%M")
+                    )
+                else:
+                    # Mark stale config for removal
+                    configs_to_remove.append(cfg.id)
+
+            # Clean up stale configs
+            for config_id in configs_to_remove:
+                self.store.delete_config(config_id)
         except:
             pass
 
@@ -395,7 +510,11 @@ class CreateEnvironmentScreen(Screen):
             if event.state == WorkerState.SUCCESS:
                 result = event.worker.result
                 status.update(f"[green]✓ Created![/green]\n{result['activation_command']}")
-                self.set_timer(2, self.app.pop_screen)
+                # Refresh the parent screen's environment list before popping
+                if hasattr(self.app.screen_stack[0], 'load_environments'):
+                    self.app.screen_stack[0].load_environments()
+                # Return to main screen without timer to avoid freezing
+                self.app.pop_screen()
             elif event.state == WorkerState.ERROR:
                 status.update(f"[red]Error: {event.worker.error}[/red]")
 
@@ -409,6 +528,7 @@ class EnvironmentDetailScreen(Screen):
     BINDINGS = [
         ("escape", "back", "Back"),
         ("p", "packages", "Packages"),
+        ("d", "delete", "Delete"),
     ]
 
     def __init__(self, config_id: str):
@@ -416,6 +536,7 @@ class EnvironmentDetailScreen(Screen):
         self.config_id = config_id
         self.store = JSONStore()
         self.config = None
+        self.delete_worker_running = False
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -423,8 +544,10 @@ class EnvironmentDetailScreen(Screen):
             Static("", id="title"),
             Static("", id="info"),
             Static("", id="packages"),
+            Static("", id="delete_status"),
             Horizontal(
                 Button("📦 Packages", variant="primary", id="btn_packages"),
+                Button("🗑️  Delete", variant="error", id="btn_delete"),
                 Button("← Back", id="btn_back"),
                 id="buttons"
             ),
@@ -464,8 +587,55 @@ class EnvironmentDetailScreen(Screen):
         """Handle buttons."""
         if event.button.id == "btn_packages" and self.config:
             self.app.push_screen(PackageManagementScreen(str(self.config.id)))
+        elif event.button.id == "btn_delete" and self.config:
+            if not self.delete_worker_running:
+                self.delete_environment_async()
         elif event.button.id == "btn_back":
             self.app.pop_screen()
+
+    def delete_environment_async(self) -> None:
+        """Delete environment async."""
+        status = self.query_one("#delete_status", Static)
+        status.update("[yellow]⏳ Deleting environment...[/yellow]")
+        self.delete_worker_running = True
+
+        self.run_worker(
+            self._delete_environment(),
+            name="delete_env",
+            group="env_deletion"
+        )
+
+    async def _delete_environment(self) -> dict:
+        """Delete worker."""
+        import shutil
+        from pathlib import Path
+
+        # Delete the virtual environment directory
+        env_path = Path(self.config.projectPath) / self.config.envName
+        if env_path.exists():
+            shutil.rmtree(env_path)
+
+        # Delete from storage
+        self.store.delete_config(self.config.id)
+
+        return {"success": True, "env_name": self.config.envName}
+
+    def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
+        """Handle worker completion."""
+        if event.worker.group == "env_deletion":
+            self.delete_worker_running = False
+            status = self.query_one("#delete_status", Static)
+
+            if event.state == WorkerState.SUCCESS:
+                result = event.worker.result
+                status.update(f"[green]✓ Deleted {result['env_name']}![/green]")
+                # Refresh the parent screen's environment list
+                if hasattr(self.app.screen_stack[0], 'load_environments'):
+                    self.app.screen_stack[0].load_environments()
+                # Return to main screen
+                self.app.pop_screen()
+            elif event.state == WorkerState.ERROR:
+                status.update(f"[red]Error: {event.worker.error}[/red]")
 
     def action_back(self) -> None:
         self.app.pop_screen()
@@ -473,6 +643,10 @@ class EnvironmentDetailScreen(Screen):
     def action_packages(self) -> None:
         if self.config:
             self.app.push_screen(PackageManagementScreen(str(self.config.id)))
+
+    def action_delete(self) -> None:
+        if self.config and not self.delete_worker_running:
+            self.delete_environment_async()
 
 
 class PackageManagementScreen(Screen):
@@ -624,6 +798,8 @@ class PyEnvTUI(App):
     Label { margin: 1 0 0 0; text-style: bold; }
     #install_dialog, #search_dialog { width: 70; height: auto; padding: 2; background: $surface; border: thick $primary; }
     OptionList { height: 15; margin: 1 0; }
+    #selected_container { height: 8; margin: 1 0; border: solid $primary; }
+    #selected_display { height: auto; }
     """
 
     TITLE = "PyEnvCLI"
