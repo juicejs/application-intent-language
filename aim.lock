@@ -1,0 +1,6 @@
+{
+  "weather": {
+    "version": "1.4",
+    "entry": "registry/packages/weather/weather.intent"
+  }
+}
